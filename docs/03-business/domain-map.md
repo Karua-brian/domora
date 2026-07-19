@@ -13,3 +13,15 @@ The goal is to model the property business before implementing software.
 The Lease Domain is the operational heart of Domora.
 
 Everything related to occupancy, invoicing, payments and revenue originates from an active lease.
+
+---
+
+# Core Business Events
+
+- Organization Created
+- Property Added
+- Unit Created
+- Lease Signed
+- Invoice Generated
+- Payment Received
+- Maintenance Requested

@@ -37,6 +37,18 @@ Help property businesses operate with complete trust, intelligence, and automati
 
 ---
 
+## Core Capabilities
+
+- Organization Management
+- Property Management
+- Unit Management
+- Tenant Management
+- Lease Management
+- Invoice Management
+- Payments
+- Maintenance
+- Operational Intelligence
+
 ## Documentation
 
 The documentation lives inside the `docs/` directory.

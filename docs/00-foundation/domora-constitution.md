@@ -75,3 +75,19 @@ Every feature must improve one of:
 - Automation
 
 Otherwise it should not exist.
+
+---
+
+# Principle 8
+
+Every Repository must explain itself
+
+---
+
+# Principle 9 
+
+Software does not change state. 
+
+Business events change state. 
+
+Software protects the validity of those changes.

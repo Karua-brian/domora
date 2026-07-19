@@ -17,3 +17,7 @@ We favour long-term maintainability over short-term convenience.
 Every architectural decision must improve the business.
 
 Understand deeply. Design deliberately. Build faithfully.
+
+Delete examples. Never delete infrastructure you don't yet understand. Understand it first, then decide.
+
+No placeholder code lives in the repository.

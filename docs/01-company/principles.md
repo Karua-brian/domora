@@ -11,8 +11,6 @@ Time: 02:55
 
 These principles guide every technical and business decision made within Domora.
 
-Software does not change state. Business events change state. Software protects the validity of those changes.
-
 ---
 
 ## 1. Business Before Technology
@@ -82,3 +80,9 @@ Simple systems are easier to understand, maintain, and extend.
 ## 9. Domora is the Source of Business Truth
 
 Every decision made by a property business should be traceable to accurate, consistent, and auditable business data.
+
+---
+
+## 10. State is the result of past events.
+
+Model business events explicitly because businesses remember what happened, not what was inserted into a database.
