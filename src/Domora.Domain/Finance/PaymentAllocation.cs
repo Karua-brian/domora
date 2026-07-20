@@ -1,5 +1,7 @@
 namespace Domora.Domain.Finance;
 
+using Domora.Domain.Common;
+
 public class PaymentAllocation
 {
     public Guid Id { get; }
@@ -21,7 +23,7 @@ public class PaymentAllocation
         if (invoiceId == Guid.Empty)
             throw new ArgumentException("Invoice ID is required.", nameof(invoiceId));
 
-        if (allocatedAmount <= 0)
+        if (allocatedAmount.Amount <= 0)
             throw new ArgumentException("Allocated amount must be greater than zero.", nameof(allocatedAmount));
 
         Id = id;

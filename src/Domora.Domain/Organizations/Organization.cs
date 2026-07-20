@@ -5,14 +5,18 @@ using Domora.Domain.Organizations.ValueObjects;
 // Represents an organization that manages properties. 
 public class Organization
 {
-
     public Guid Id { get;}
 
     public OrganizationName Name { get; } 
     
-    public Organization(Guid id, OrganizationName name)
+    private Organization(Guid id, OrganizationName name)
     {
-        Id = id,
+        Id = id;
         Name = name;
+    }
+
+    public static Organization Register(OrganizationName name)
+    {
+        return new Organization(Guid.NewGuid(), name);
     }
 }

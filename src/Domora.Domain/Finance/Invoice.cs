@@ -6,7 +6,7 @@ public class Invoice
 {
     public Guid Id { get; }
 
-    public Guild LeaseId { get; }
+    public Guid LeaseId { get; }
 
     public Money Amount { get; }
 
@@ -17,21 +17,21 @@ public class Invoice
     public Invoice(Guid id, Guid leaseId, Money amount, DateOnly issueDate, DateOnly dueDate)
     {
         if (id == Guid.Empty)
-            throw new ArguementException("Invoice ID is required.", nameof(id));
+            throw new ArgumentException("Invoice ID is required.", nameof(id));
 
         if (leaseId == Guid.Empty)
-            throw new ArguementException("Lease ID is required.", nameof(leaseId));
+            throw new ArgumentException("Lease ID is required.", nameof(leaseId));
 
-        if (amount <= 0)
-            throw new ArguementException("Invoice amount must be greater than zero.", nameof(amount));    
+        if (amount.Amount <= 0)
+            throw new ArgumentException("Invoice amount must be greater than zero.", nameof(amount));    
 
         if (dueDate < issueDate)
-            throw new ArguementException("Due date cannot be before issue date.", nameof(dueDate));
+            throw new ArgumentException("Due date cannot be before issue date.", nameof(dueDate));
 
-        Id = id,
-        LeaseId = leaseId,
-        Amount = amount,
-        IssueDate = issueDate,
+        Id = id;
+        LeaseId = leaseId;
+        Amount = amount;
+        IssueDate = issueDate;
         DueDate = dueDate;        
     }
 }

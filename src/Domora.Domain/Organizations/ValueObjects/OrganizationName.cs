@@ -1,4 +1,4 @@
-namespace Domain.Domora.Organizations.ValueObjects;
+namespace Domora.Domain.Organizations.ValueObjects;
 
 public sealed class OrganizationName
 {

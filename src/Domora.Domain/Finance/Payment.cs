@@ -1,5 +1,7 @@
 namespace Domora.Domain.Finance;
 
+using Domora.Domain.Common;
+
 public class Payment
 {
     public Guid Id { get; }
@@ -18,7 +20,7 @@ public class Payment
         if (payerId == Guid.Empty)
             throw new ArgumentException("Payer ID is required.", nameof(payerId));
 
-        if (amount <= 0)
+        if (amount.Amount <= 0)
             throw new ArgumentException("Payment amount must be greater than zero.", nameof(amount));
 
         Id = id;

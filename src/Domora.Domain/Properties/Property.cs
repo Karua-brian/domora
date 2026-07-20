@@ -15,10 +15,10 @@ public class Property
     public Property(Guid id, PropertyName name, Guid organizationId)
     {
         if (id == Guid.Empty)
-            throw new ArguementException("Property ID is required.", nameof(id));
+            throw new ArgumentException("Property ID is required.", nameof(id));
 
         if (organizationId == Guid.Empty)
-            throw new ArguementException("Organization ID is required.", nameof(organizationId));
+            throw new ArgumentException("Organization ID is required.", nameof(organizationId));
                 
         Id = id;
         Name = name;

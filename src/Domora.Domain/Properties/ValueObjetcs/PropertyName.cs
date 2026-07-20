@@ -1,14 +1,14 @@
 namespace Domora.Domain.Properties.ValueObjects;
 
-public sealed class Property
+public sealed class PropertyName
 {
-    public PropertyName Value { get; }
+    public string Value { get; }
 
     public PropertyName(string value) 
     {
         if (string.IsNullOrWhiteSpace(value))
-            throw new ArguementException("Property name is required.", nameof(value));
-
+            throw new ArgumentException("Property name is required.", nameof(value));
+                
         Value = value.Trim();
     }
 }
