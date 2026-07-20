@@ -8,9 +8,9 @@ public class PaymentAllocation
 
     public Guid InvoiceId { get; }
 
-    public decimal AllocatedAmount { get; }
+    public Money AllocatedAmount { get; }
 
-    public PaymentAllocation(Guid id, Guid paymentId, Guid invoiceId, decimal allocatedAmount)
+    public PaymentAllocation(Guid id, Guid paymentId, Guid invoiceId, Money allocatedAmount)
     {
         if (id == Guid.Empty)
             throw new ArgumentException("Payment allocation ID is required.", nameof(id));

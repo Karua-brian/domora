@@ -6,11 +6,11 @@ public class Payment
 
     public Guid PayerId { get; }
 
-    public decimal Amount { get; }
+    public Money Amount { get; }
 
     public DateOnly ReceivedOn { get; }
 
-    public Payment(Guid id, Guid payerId, decimal amount, DateOnly receivedOn)
+    public Payment(Guid id, Guid payerId, Money amount, DateOnly receivedOn)
     {
         if (id == Guid.Empty)
             throw new ArgumentException("Payment ID is required.", nameof(id));

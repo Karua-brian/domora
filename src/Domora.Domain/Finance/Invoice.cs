@@ -1,18 +1,20 @@
 namespace Domora.Domain.Finance;
 
+using Domora.Domain.Common;
+
 public class Invoice
 {
     public Guid Id { get; }
 
     public Guild LeaseId { get; }
 
-    public decimal Amount { get; }
+    public Money Amount { get; }
 
     public DateOnly IssueDate { get; }
 
     public DateOnly DueDate { get; }
 
-    public Invoice(Guid id, Guid leaseId, decimal amount, DateOnly issueDate, DateOnly dueDate)
+    public Invoice(Guid id, Guid leaseId, Money amount, DateOnly issueDate, DateOnly dueDate)
     {
         if (id == Guid.Empty)
             throw new ArguementException("Invoice ID is required.", nameof(id));
