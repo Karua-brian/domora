@@ -1,1 +1,15 @@
+# Build
+bin/
+obj/
 appsettings.Development.json
+
+# User files
+.vscode/
+.idea/
+.vs
+
+# Environment
+.env
+
+# Logs
+*.log
