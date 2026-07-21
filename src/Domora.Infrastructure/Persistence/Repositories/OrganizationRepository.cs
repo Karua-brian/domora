@@ -13,5 +13,7 @@ public sealed class OrganizationRepository : IOrganizationRepository
     public async Task AddAsync(Organization organization, CancellationToken cancellationToken = default)
     {
         await _dbContext.Organizations.AddAsync(organization, cancellationToken);
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }

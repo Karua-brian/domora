@@ -17,6 +17,7 @@ public class Organization
 
     public static Organization Register(OrganizationName name)
     {
+
         return new Organization(Guid.NewGuid(), name);
     }
 }

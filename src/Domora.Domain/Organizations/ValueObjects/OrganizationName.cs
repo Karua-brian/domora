@@ -4,11 +4,16 @@ public sealed class OrganizationName
 {
     public string Value { get; }
 
-    public OrganizationName(string value)
+    private OrganizationName(string value)
+    {
+        Value = value.Trim();
+    }
+
+    public static OrganizationName Create(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
             throw new ArgumentException("Organization name is required.", nameof(value));
 
-        Value = value.Trim();   
+        return new OrganizationName(value);
     }
 }

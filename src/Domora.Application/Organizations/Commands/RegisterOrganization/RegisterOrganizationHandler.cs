@@ -1,4 +1,5 @@
 using Domora.Domain.Organizations;
+using Domora.Domain.Organizations.ValueObjects;
 
 namespace Domora.Application.Organizations.Commands.RegisterOrganization;
 
@@ -11,10 +12,16 @@ public sealed class RegisterOrganizationHandler
         _organizationRepository = organizationRepository;
     }
 
-    public async Task Handle(RegisterOrganizationCommand command)
+    public async Task<RegisterOrganizationResponse> Handle(RegisterOrganizationCommand command, CancellationToken cancellationToken)
     {
-        var organization = Organization.Register(command.Name);
+        Console.WriteLine($"Handling RegisterOrganizationCommand for organization name: {command.Name}");
+        
+        var name = OrganizationName.Create(command.Name);
 
-        await _organizationRepository.AddAsync(organization, cancellationToken: default);
+        var organization = Organization.Register(name);
+
+        await _organizationRepository.AddAsync(organization, cancellationToken);
+
+        return new RegisterOrganizationResponse(organization.Id, organization.Name.Value);
     }
 }

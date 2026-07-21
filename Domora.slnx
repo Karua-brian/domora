@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/Domora.Domain/Domora.Domain.csproj" />
+    <Project Path="src/Domora.API/Domora.API.csproj" />
     <Project Path="src/Domora.Application/Domora.Application.csproj" />
     <Project Path="src/Domora.Infrastructure/Domora.Infrastructure.csproj" />
   </Folder>
