@@ -12,7 +12,8 @@ public sealed class OrganizationConfiguration : IEntityTypeConfiguration<Organiz
     {
         builder.HasKey(x => x.Id);
 
-        builder.Property(x => x.Name)
+        builder
+            .Property(x => x.Name)
             .HasConversion(
                 name => name.Value,
                 value => OrganizationName.Create(value)

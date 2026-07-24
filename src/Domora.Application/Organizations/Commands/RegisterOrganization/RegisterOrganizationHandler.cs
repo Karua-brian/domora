@@ -16,9 +16,9 @@ public sealed class RegisterOrganizationHandler
     {
         Console.WriteLine($"Handling RegisterOrganizationCommand for organization name: {command.Name}");
         
-        var name = OrganizationName.Create(command.Name);
+        var organizationName = OrganizationName.Create(command.Name);
 
-        var organization = Organization.Register(name);
+        var organization = Organization.Register(organizationName);
 
         await _organizationRepository.AddAsync(organization, cancellationToken);
 

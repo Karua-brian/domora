@@ -11,6 +11,9 @@ public class Organization
     
     private Organization(Guid id, OrganizationName name)
     {
+        if (id == Guid.Empty)
+            throw new ArgumentException("Organization ID is required.", nameof(id));
+
         Id = id;
         Name = name;
     }
