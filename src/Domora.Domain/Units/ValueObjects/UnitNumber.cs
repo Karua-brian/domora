@@ -6,11 +6,14 @@ public sealed class UnitNumber
 
     public UnitNumber(string value)
     {
-        if (string.IsNullOrWhiteSpace(value))
-            throw new ArgumentException("Unit number is required.", nameof(value));
-
         Value = value.Trim();
     }
 
-    public override string ToString() => Value;
+    public static UnitNumber Create(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            throw new ArgumentException("Unit number is required.", nameof(value)); 
+
+        return new UnitNumber(value);  
+    }
 }

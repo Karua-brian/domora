@@ -1,16 +1,21 @@
 namespace Domora.Domain.Units;
 
+using Domora.Domain.Units.Enums;
 using Domora.Domain.Units.ValueObjects;
 
 public class Unit 
 {
     public Guid Id { get; }
 
-    public UnitNumber Number { get; }
-
     public Guid PropertyId { get; }
 
-    public Unit(Guid id, UnitNumber number, Guid propertyId)
+    public UnitNumber Number { get; }
+
+    public UnitType Type { get; }
+
+    public OccupancyStatus Status { get; }
+
+    public Unit(Guid id, Guid propertyId, UnitNumber number, UnitType type, OccupancyStatus status)
     {
         if (id == Guid.Empty)
             throw new ArgumentException("Unit ID is required.", nameof(id));
@@ -19,7 +24,14 @@ public class Unit
             throw new ArgumentException("Property ID is required.", nameof(propertyId));
 
         Id = id;
+        PropertyId = propertyId;
         Number = number;
-        PropertyId = propertyId;        
+        Type = type;
+        Status = status;
+    }
+
+    public static Unit Register(Guid propertyId, UnitNumber number, UnitType type)
+    {
+        return new Unit(Guid.NewGuid(), propertyId, number, type, OccupancyStatus.Vacant);
     }
 }

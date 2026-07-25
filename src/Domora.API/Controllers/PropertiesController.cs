@@ -24,6 +24,6 @@ public sealed class PropertyController : ControllerBase
 
         var response = await _handler.Handle(command, cancellationToken);
 
-        return Created($"api/properties/{response.Id}" ,response);
+        return Created($"/api/properties/{response.Id}" ,response);
     }
 }
