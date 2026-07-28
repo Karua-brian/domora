@@ -1,3 +1,4 @@
+using Domora.Domain.Finance;
 using Domora.Domain.Leasing;
 using Domora.Domain.Organizations;
 using Domora.Domain.Properties;
@@ -19,6 +20,8 @@ public sealed class DomoraDbContext : DbContext
     public DbSet<Unit> Units => Set<Unit>();
 
     public DbSet<Lease> Leases => Set<Lease>();
+
+    public DbSet<Invoice> Invoices => Set<Invoice>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

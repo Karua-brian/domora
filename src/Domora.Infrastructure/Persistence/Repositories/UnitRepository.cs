@@ -22,7 +22,7 @@ public sealed class UnitRepository : IUnitRepository
     public async Task<Unit?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         return await _dbContext.Units.FirstOrDefaultAsync(
-            x => x.Id == id,
+            unit => unit.Id == id,
             cancellationToken
         );
     }

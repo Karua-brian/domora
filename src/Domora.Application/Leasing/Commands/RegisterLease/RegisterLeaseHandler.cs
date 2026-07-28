@@ -34,7 +34,7 @@ public sealed class RegisterLeaseHandler
         unit.Occupy(); 
 
         var lease = Lease.Register(
-            command.UnitId,
+            unit.Id,
             command.TenantId,
             command.StartDate,
             command.MonthlyRent

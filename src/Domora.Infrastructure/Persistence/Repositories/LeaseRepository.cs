@@ -11,10 +11,23 @@ public sealed class LeaseRepository : ILeaseRepository
         _dbContext = dbContext;
     }
 
-    public async Task AddAsync(Lease lease, CancellationToken cancellationToken)
+    public async Task AddAsync(
+        Lease lease, 
+        CancellationToken cancellationToken)
     {
         await _dbContext.Leases.AddAsync(lease, cancellationToken);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<Lease?> GetByIdAsync(
+        Guid id, 
+        CancellationToken cancellationToken)
+    {
+        return await _dbContext.Leases
+            .FindAsync(
+                new object[] { id },    
+                cancellationToken
+        );
     }
 }

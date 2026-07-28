@@ -1,3 +1,5 @@
+using Domora.Domain.Leasing;
+
 namespace Domora.Domain.Finance;
 
 public interface IInvoiceRepository
@@ -6,4 +8,5 @@ public interface IInvoiceRepository
         Invoice invoice,
         CancellationToken cancellationToken = default
     );
+
 }

@@ -46,6 +46,6 @@ public class Invoice
             leaseId,
             amount,
             dueDate,
-            InvoiceStatus.Paid);
+            InvoiceStatus.Pending);
     }
 }

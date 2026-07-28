@@ -1,7 +1,9 @@
+using Domora.Application.Finance.Commands.IssueInvoice;
 using Domora.Application.Leasing.Commands.RegisterLease;
 using Domora.Application.Organizations.Commands.RegisterOrganization;
 using Domora.Application.Properties.Commands.RegisterProperty;
 using Domora.Application.Units.Commands.RegisterUnit;
+using Domora.Domain.Finance;
 using Domora.Domain.Leasing;
 using Domora.Domain.Organizations;
 using Domora.Domain.Properties;
@@ -33,6 +35,8 @@ builder.Services.AddScoped<RegisterUnitHandler>();
 
 builder.Services.AddScoped<RegisterLeaseHandler>();
 
+builder.Services.AddScoped<IssueInvoiceHandler>();
+
 
 // Infrastructure
 builder.Services.AddScoped<IOrganizationRepository, OrganizationRepository>();
@@ -42,6 +46,8 @@ builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
 builder.Services.AddScoped<IUnitRepository, UnitRepository>();
 
 builder.Services.AddScoped<ILeaseRepository, LeaseRepository>();
+
+builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
 
 
 // Database
