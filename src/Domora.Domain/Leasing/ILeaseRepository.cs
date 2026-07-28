@@ -2,11 +2,13 @@ namespace Domora.Domain.Leasing;
 
 public interface ILeaseRepository
 {
-    Lease? GetById(Guid id);
 
-    void Add(Lease lease);
+    Task AddAsync(Lease lease, CancellationToken cancellationToken = default);
 
-    void Update(Lease lease);
+    // void Update(Lease lease);
 
-    void Remove(Lease lease);
+    // void Remove(Lease lease);
+
+    // Lease? GetById(Guid id);
+
 }

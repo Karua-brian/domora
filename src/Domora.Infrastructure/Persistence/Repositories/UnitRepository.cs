@@ -1,4 +1,5 @@
 using Domora.Domain.Units;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domora.Infrastructure.Persistence.Repositories;
 
@@ -16,5 +17,21 @@ public sealed class UnitRepository : IUnitRepository
         await _dbContext.Units.AddAsync(unit, cancellationToken);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<Unit?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return await _dbContext.Units.FirstOrDefaultAsync(
+            x => x.Id == id,
+            cancellationToken
+        );
+    }
+
+    public async Task UpdateAsync(Unit unit, CancellationToken cancellationToken)
+    {
+        _dbContext.Units.Update(unit);
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
     }
 }

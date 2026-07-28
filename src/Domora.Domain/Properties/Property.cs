@@ -11,7 +11,7 @@ public class Property
 
     public PropertyName Name { get; }
 
-    public Property(Guid id, Guid organizationId, PropertyName name)
+    private Property(Guid id, Guid organizationId, PropertyName name)
     {
         if (id == Guid.Empty)
             throw new ArgumentException("Property ID is required.", nameof(id));

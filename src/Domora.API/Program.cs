@@ -1,6 +1,8 @@
+using Domora.Application.Leasing.Commands.RegisterLease;
 using Domora.Application.Organizations.Commands.RegisterOrganization;
 using Domora.Application.Properties.Commands.RegisterProperty;
 using Domora.Application.Units.Commands.RegisterUnit;
+using Domora.Domain.Leasing;
 using Domora.Domain.Organizations;
 using Domora.Domain.Properties;
 using Domora.Domain.Units;
@@ -29,6 +31,8 @@ builder.Services.AddScoped<RegisterPropertyHandler>();
 
 builder.Services.AddScoped<RegisterUnitHandler>();
 
+builder.Services.AddScoped<RegisterLeaseHandler>();
+
 
 // Infrastructure
 builder.Services.AddScoped<IOrganizationRepository, OrganizationRepository>();
@@ -36,6 +40,9 @@ builder.Services.AddScoped<IOrganizationRepository, OrganizationRepository>();
 builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
 
 builder.Services.AddScoped<IUnitRepository, UnitRepository>();
+
+builder.Services.AddScoped<ILeaseRepository, LeaseRepository>();
+
 
 // Database
 builder.Services.AddDbContext<DomoraDbContext>(options =>

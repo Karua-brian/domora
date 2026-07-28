@@ -1,3 +1,5 @@
+using Domora.Domain.Common;
+
 namespace Domora.Domain.Leasing;
 
 public class Lease
@@ -10,9 +12,14 @@ public class Lease
 
     public DateOnly StartDate { get; }
 
-    public Decimal MonthlyRent { get; }
+    public Money MonthlyRent { get; } 
 
-    public Lease(Guid id, Guid unitId, Guid tenantId, DateOnly startDate, Decimal monthlyRent) 
+    private Lease()
+    {
+        MonthlyRent = null;
+    }
+
+    private Lease(Guid id, Guid unitId, Guid tenantId, DateOnly startDate, Money monthlyRent) 
     {
         if (id == Guid.Empty)
             throw new ArgumentException("Lease ID is required.", nameof(id));
@@ -24,9 +31,14 @@ public class Lease
             throw new ArgumentException("Tenant ID is required.", nameof(tenantId));
 
         Id = id;
-        UnitId = unitId;
+        UnitId = unitId;    
         TenantId = tenantId;
         StartDate = startDate;
         MonthlyRent = monthlyRent;
     }
-}
+
+    public static Lease Register(Guid unitId, Guid tenantId, DateOnly startDate, Money monthlyRent)
+    {
+        return new Lease(Guid.NewGuid(), unitId, tenantId, startDate, monthlyRent);    
+    }
+}   
