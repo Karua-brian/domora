@@ -24,4 +24,26 @@ public sealed class InvoiceRepository : IInvoiceRepository
         await _dbContext.SaveChangesAsync(cancellationToken);
 
     }
+
+    public async Task<Invoice?> GetByIdAsync(
+        Guid id,
+        CancellationToken cancellationToken
+    )
+    {
+        return await _dbContext.Invoices
+            .FindAsync(
+                new object[] { id },
+                cancellationToken
+            );
+    }
+
+    public async Task UpdateAsync(
+        Invoice invoice,
+        CancellationToken cancellationToken
+    )
+    {
+        _dbContext.Invoices.Update(invoice);
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
 }

@@ -9,4 +9,13 @@ public interface IInvoiceRepository
         CancellationToken cancellationToken = default
     );
 
+    Task<Invoice?> GetByIdAsync(
+        Guid id,
+        CancellationToken cancellationToken = default
+    );
+
+    Task UpdateAsync(
+        Invoice invoice,
+        CancellationToken cancellationToken
+    );
 }

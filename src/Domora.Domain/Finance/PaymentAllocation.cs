@@ -10,9 +10,19 @@ public class PaymentAllocation
 
     public Guid InvoiceId { get; }
 
-    public Money AllocatedAmount { get; }
+    public Money AllocateAmount { get; }
 
-    public PaymentAllocation(Guid id, Guid paymentId, Guid invoiceId, Money allocatedAmount)
+
+    private PaymentAllocation()
+    {
+        AllocateAmount = null;
+    }
+
+    private PaymentAllocation(
+        Guid id, 
+        Guid paymentId, 
+        Guid invoiceId, 
+        Money allocateAmount)
     {
         if (id == Guid.Empty)
             throw new ArgumentException("Payment allocation ID is required.", nameof(id));
@@ -23,12 +33,25 @@ public class PaymentAllocation
         if (invoiceId == Guid.Empty)
             throw new ArgumentException("Invoice ID is required.", nameof(invoiceId));
 
-        if (allocatedAmount.Amount <= 0)
-            throw new ArgumentException("Allocated amount must be greater than zero.", nameof(allocatedAmount));
-
         Id = id;
         PaymentId = paymentId;
         InvoiceId = invoiceId;
-        AllocatedAmount = allocatedAmount;
+        AllocateAmount = allocateAmount;
     }
+
+
+    public static PaymentAllocation Allocate(
+        Guid paymentId,
+        Guid invoiceId,
+        Money allocateAmount
+    )
+    {
+        return new PaymentAllocation(
+            Guid.NewGuid(),
+            paymentId,
+            invoiceId,
+            allocateAmount
+        );
+    }
+
 }

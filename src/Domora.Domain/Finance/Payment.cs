@@ -6,26 +6,44 @@ public class Payment
 {
     public Guid Id { get; }
 
-    public Guid PayerId { get; }
-
     public Money Amount { get; }
 
-    public DateOnly ReceivedOn { get; }
+    public DateTimeOffset PaidAt { get; }
 
-    public Payment(Guid id, Guid payerId, Money amount, DateOnly receivedOn)
+    public string Reference { get; }
+
+    private Payment()
+    {
+        Amount = null;
+        Reference = null;
+    }
+
+    private Payment(
+        Guid id, 
+        Money amount, 
+        DateTimeOffset paidAt, 
+        string refrence)
     {
         if (id == Guid.Empty)
             throw new ArgumentException("Payment ID is required.", nameof(id));
 
-        if (payerId == Guid.Empty)
-            throw new ArgumentException("Payer ID is required.", nameof(payerId));
-
-        if (amount.Amount <= 0)
-            throw new ArgumentException("Payment amount must be greater than zero.", nameof(amount));
-
         Id = id;
-        PayerId = payerId;
         Amount = amount;
-        ReceivedOn = receivedOn;
+        PaidAt = paidAt;
+        Reference = refrence;
+    }
+
+    public static Payment Receive(
+        Money amount,
+        DateTimeOffset paidAt,
+        string reference
+    )
+    {
+        return new Payment(
+            Guid.NewGuid(),
+            amount,
+            paidAt,
+            reference
+        );
     }
 }

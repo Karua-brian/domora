@@ -23,6 +23,10 @@ public sealed class DomoraDbContext : DbContext
 
     public DbSet<Invoice> Invoices => Set<Invoice>();
 
+    public DbSet<Payment> Payments => Set<Payment>();
+
+    // public DbSet<PaymentAllocation> PaymentAllocations => Set<PaymentAllocation>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(DomoraDbContext).Assembly);

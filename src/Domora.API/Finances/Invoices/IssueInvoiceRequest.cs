@@ -1,4 +1,4 @@
-namespace Domora.API.Invoices;
+namespace Domora.API.Finances.Invoices;
 
 public sealed record IssueInvoiceRequest(
     Guid LeaseId,

@@ -6,6 +6,7 @@ public sealed record IssueInvoiceResponse(
     Guid Id,
     Guid LeaseId,
     decimal Money,
+    string Currency,
     DateOnly DueDate,
     InvoiceStatus Status
 );

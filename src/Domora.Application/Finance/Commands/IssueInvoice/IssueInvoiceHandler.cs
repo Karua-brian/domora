@@ -46,6 +46,7 @@ public sealed class IssueInvoiceHandler
             invoice.Id,
             invoice.LeaseId,
             invoice.Amount.Amount,
+            invoice.Amount.Currency,
             invoice.DueDate,
             invoice.Status
         );

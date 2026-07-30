@@ -46,6 +46,15 @@ public class Invoice
             leaseId,
             amount,
             dueDate,
-            InvoiceStatus.Pending);
+            InvoiceStatus.Pending
+        );
+    }
+
+    public void MarkAsPaid()
+    {
+        if (Status == InvoiceStatus.Paid)
+            throw new InvalidOperationException("Invoice is marked as paid");
+
+        Status = InvoiceStatus.Paid;
     }
 }

@@ -1,4 +1,4 @@
-using Domora.API.Invoices;
+using Domora.API.Finances.Invoices;
 using Domora.Application.Finance.Commands.IssueInvoice;
 using Domora.Domain.Common;
 using Microsoft.AspNetCore.Mvc;

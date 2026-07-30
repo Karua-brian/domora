@@ -1,16 +1,14 @@
 namespace Domora.Domain.Finance;
 
-public interface IPaymentRepository
+public interface IPaymentAllocationRepository
 {
     Task AddAsync(
-        Payment payment, 
+        PaymentAllocation paymentAllocation,
         CancellationToken cancellationToken = default
     );
 
-    Task<Payment?> GetByIdAsync(
+    Task<PaymentAllocation?> GetByIdAsync(
         Guid id,
         CancellationToken cancellationToken = default
     );
-
-
 }

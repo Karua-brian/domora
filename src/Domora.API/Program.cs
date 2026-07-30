@@ -1,4 +1,6 @@
+using Domora.Application.Finance.Commands.AllocatePayment;
 using Domora.Application.Finance.Commands.IssueInvoice;
+using Domora.Application.Finance.Commands.ReceivePayment;
 using Domora.Application.Leasing.Commands.RegisterLease;
 using Domora.Application.Organizations.Commands.RegisterOrganization;
 using Domora.Application.Properties.Commands.RegisterProperty;
@@ -37,6 +39,9 @@ builder.Services.AddScoped<RegisterLeaseHandler>();
 
 builder.Services.AddScoped<IssueInvoiceHandler>();
 
+builder.Services.AddScoped<ReceivePaymentHandler>();
+
+// builder.Services.AddScoped<AllocatePaymentHandler>();
 
 // Infrastructure
 builder.Services.AddScoped<IOrganizationRepository, OrganizationRepository>();
@@ -48,6 +53,10 @@ builder.Services.AddScoped<IUnitRepository, UnitRepository>();
 builder.Services.AddScoped<ILeaseRepository, LeaseRepository>();
 
 builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+
+// builder.Services.AddScoped<IPaymentAllocationRepository, PaymentAllocationRepository>();
 
 
 // Database

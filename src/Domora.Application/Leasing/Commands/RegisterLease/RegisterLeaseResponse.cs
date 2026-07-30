@@ -8,5 +8,6 @@ public sealed record RegisterLeaseResponse
     Guid UnitId,
     Guid TenantId,
     DateOnly StartDate,
-    decimal MonthlyRent
+    decimal MonthlyRent,
+    string Currency
 );
