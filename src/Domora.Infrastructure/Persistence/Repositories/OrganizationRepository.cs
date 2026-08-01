@@ -14,6 +14,5 @@ public sealed class OrganizationRepository : IOrganizationRepository
     {
         await _dbContext.Organizations.AddAsync(organization, cancellationToken);
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }

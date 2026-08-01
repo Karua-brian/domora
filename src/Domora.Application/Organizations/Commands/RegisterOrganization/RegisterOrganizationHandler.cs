@@ -1,3 +1,4 @@
+using Domora.Application.Common.Persistence;
 using Domora.Domain.Organizations;
 using Domora.Domain.Organizations.ValueObjects;
 
@@ -7,9 +8,15 @@ public sealed class RegisterOrganizationHandler
 {
     private readonly IOrganizationRepository _organizationRepository;
 
-    public RegisterOrganizationHandler(IOrganizationRepository organizationRepository)
+    private readonly IUnitOfWork _unitOfWork;
+
+    public RegisterOrganizationHandler(
+        IOrganizationRepository organizationRepository,
+        IUnitOfWork unitOfWork
+        )
     {
         _organizationRepository = organizationRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<RegisterOrganizationResponse> Handle(RegisterOrganizationCommand command, CancellationToken cancellationToken)
@@ -21,6 +28,8 @@ public sealed class RegisterOrganizationHandler
         var organization = Organization.Register(organizationName);
 
         await _organizationRepository.AddAsync(organization, cancellationToken);
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new RegisterOrganizationResponse(organization.Id, organization.Name.Value);
     }

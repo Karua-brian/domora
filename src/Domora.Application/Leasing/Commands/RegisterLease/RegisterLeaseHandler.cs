@@ -1,3 +1,4 @@
+using Domora.Application.Common.Persistence;
 using Domora.Domain.Leasing;
 using Domora.Domain.Units;
 
@@ -6,16 +7,21 @@ namespace Domora.Application.Leasing.Commands.RegisterLease;
 public sealed class RegisterLeaseHandler
 {
     private readonly ILeaseRepository _leaseRepository;
+    
     private readonly IUnitRepository _unitRepository;
+
+    private readonly IUnitOfWork _unitOfWork;
 
 
     public RegisterLeaseHandler(
         ILeaseRepository leaseRepository,
-        IUnitRepository unitRepository
+        IUnitRepository unitRepository,
+        IUnitOfWork unitOfWork
         )
     {
         _leaseRepository = leaseRepository;
         _unitRepository = unitRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<RegisterLeaseResponse> Handle(
@@ -49,6 +55,8 @@ public sealed class RegisterLeaseHandler
             unit,
             cancellationToken
         );
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new RegisterLeaseResponse(
             lease.Id,

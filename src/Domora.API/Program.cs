@@ -1,3 +1,4 @@
+using Domora.Application.Common.Persistence;
 using Domora.Application.Finance.Commands.AllocatePayment;
 using Domora.Application.Finance.Commands.IssueInvoice;
 using Domora.Application.Finance.Commands.ReceivePayment;
@@ -41,7 +42,7 @@ builder.Services.AddScoped<IssueInvoiceHandler>();
 
 builder.Services.AddScoped<ReceivePaymentHandler>();
 
-// builder.Services.AddScoped<AllocatePaymentHandler>();
+builder.Services.AddScoped<AllocatePaymentHandler>();
 
 // Infrastructure
 builder.Services.AddScoped<IOrganizationRepository, OrganizationRepository>();
@@ -56,8 +57,9 @@ builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
 
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 
-// builder.Services.AddScoped<IPaymentAllocationRepository, PaymentAllocationRepository>();
+builder.Services.AddScoped<IPaymentAllocationRepository, PaymentAllocationRepository>();
 
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // Database
 builder.Services.AddDbContext<DomoraDbContext>(options =>

@@ -1,3 +1,5 @@
+using Domora.Domain.Common;
+
 namespace Domora.Domain.Finance;
 
 public interface IPaymentAllocationRepository
@@ -9,6 +11,16 @@ public interface IPaymentAllocationRepository
 
     Task<PaymentAllocation?> GetByIdAsync(
         Guid id,
+        CancellationToken cancellationToken = default
+    );
+
+    Task<Money> GetAllocatedAmountForPaymentAsync(
+        Guid paymentId,
+        CancellationToken cancellationToken = default
+    );
+
+    Task<Money> GetAllocatedAmountForInvoiceAsync(
+        Guid invoiceId,
         CancellationToken cancellationToken = default
     );
 }

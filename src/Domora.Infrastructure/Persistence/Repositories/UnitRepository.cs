@@ -16,7 +16,6 @@ public sealed class UnitRepository : IUnitRepository
     {
         await _dbContext.Units.AddAsync(unit, cancellationToken);
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<Unit?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
@@ -30,8 +29,6 @@ public sealed class UnitRepository : IUnitRepository
     public async Task UpdateAsync(Unit unit, CancellationToken cancellationToken)
     {
         _dbContext.Units.Update(unit);
-
-        await _dbContext.SaveChangesAsync(cancellationToken);
 
     }
 }

@@ -1,3 +1,4 @@
+using Domora.Application.Common.Persistence;
 using Domora.Domain.Finance;
 
 namespace Domora.Application.Finance.Commands.ReceivePayment;
@@ -6,11 +7,15 @@ public sealed class ReceivePaymentHandler
 {
     private readonly IPaymentRepository _paymentRepository;
 
+    private readonly IUnitOfWork _unitOfWork;
+
     public ReceivePaymentHandler(
-        IPaymentRepository paymentRepository
+        IPaymentRepository paymentRepository,
+        IUnitOfWork unitOfWork
     )
     {
         _paymentRepository = paymentRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<ReceivePaymentResponse> Handle(
@@ -30,6 +35,8 @@ public sealed class ReceivePaymentHandler
             payment,
             cancellationToken
         );
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new ReceivePaymentResponse(
             payment.Id,

@@ -1,3 +1,4 @@
+using Domora.Application.Common.Persistence;
 using Domora.Domain.Finance;
 using Domora.Domain.Leasing;
 
@@ -9,13 +10,17 @@ public sealed class IssueInvoiceHandler
 
     private readonly ILeaseRepository _leaseRepository;
 
+    private readonly IUnitOfWork _unitOfWork;
+
     public IssueInvoiceHandler(
         IInvoiceRepository invoiceRepository,
-        ILeaseRepository leaseRepository
+        ILeaseRepository leaseRepository,
+        IUnitOfWork unitOfWork
     )
     {
         _invoiceRepository = invoiceRepository;
         _leaseRepository = leaseRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<IssueInvoiceResponse> Handle(
@@ -41,6 +46,8 @@ public sealed class IssueInvoiceHandler
             invoice,
             cancellationToken
         );
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new IssueInvoiceResponse(
             invoice.Id,

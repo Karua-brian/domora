@@ -17,6 +17,8 @@ Define what Domora does every day to move toward its vision.
 
 ## Mission Statement
 
+Help every property owner make faster, better operational decisions with less manual work and complete financial trust.
+
 Domora helps property businesses maximize occupancy, protect revenue, and operate with confidence.
 
 Help property businesses operate with complete trust, intelligence, and automation.

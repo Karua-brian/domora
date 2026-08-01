@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Domora.Domain\Domora.Domain.csproj" />
+    <ProjectReference Include="..\Domora.Application\Domora.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -15,6 +15,5 @@ public sealed class PropertyRepository : IPropertyRepository
     {
         await _dbContext.Properties.AddAsync(property, cancellationToken);
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }

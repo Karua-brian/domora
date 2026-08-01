@@ -16,8 +16,7 @@ public sealed class LeaseRepository : ILeaseRepository
         CancellationToken cancellationToken)
     {
         await _dbContext.Leases.AddAsync(lease, cancellationToken);
-
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        
     }
 
     public async Task<Lease?> GetByIdAsync(

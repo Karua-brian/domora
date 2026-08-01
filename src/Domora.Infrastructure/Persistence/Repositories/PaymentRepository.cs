@@ -22,8 +22,6 @@ public sealed class PaymentRepository : IPaymentRepository
             payment,
             cancellationToken
         );
-
-        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<Payment?> GetByIdAsync(
