@@ -7,5 +7,6 @@ public sealed record RegisterUnitResponse(
     Guid PropertyId, 
     string Number, 
     UnitType Type, 
-    OccupancyStatus Status
+    OccupancyStatus Status,
+    Guid Version
     );

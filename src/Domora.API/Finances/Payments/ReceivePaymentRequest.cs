@@ -5,4 +5,4 @@ public sealed record ReceivePaymentRequest(
     string Currency,
     DateTimeOffset PaidAt,
     string Reference
-);
+    );

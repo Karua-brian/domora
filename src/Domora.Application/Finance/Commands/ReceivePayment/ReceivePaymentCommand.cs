@@ -6,4 +6,4 @@ public sealed record ReceivePaymentCommand(
     Money Amount,
     DateTimeOffset PaidAt,
     string Reference
-);
+    );

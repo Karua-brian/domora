@@ -64,7 +64,9 @@ public sealed class RegisterLeaseHandler
             lease.TenantId,
             lease.StartDate,
             lease.MonthlyRent.Amount,
-            lease.MonthlyRent.Currency
+            lease.MonthlyRent.Currency,
+            lease.Status,
+            lease.Version
         );
     } 
 }

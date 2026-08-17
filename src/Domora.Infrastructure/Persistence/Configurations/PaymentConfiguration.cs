@@ -37,5 +37,12 @@ public sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder
             .HasIndex(x => x.Reference)
             .IsUnique();
+
+        builder
+            .Property(x => x.Version)
+            .HasColumnType("uuid")
+            .ValueGeneratedNever()
+            .IsConcurrencyToken()
+            .IsRequired();
     }
 }

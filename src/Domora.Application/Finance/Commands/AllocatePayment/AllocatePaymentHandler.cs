@@ -54,11 +54,11 @@ public sealed class AllocatePaymentHandler
             cancellationToken
         );
   
-        var remaining = payment.Amount.Amount - allocatedToPayment.Amount;
+        var remaining = payment.GetRemainingBalance(allocatedToPayment);
 
-        if (command.AllocateAmount.Amount > remaining)
+        if (remaining.Amount < command.AllocateAmount.Amount)
             throw new InvalidOperationException(
-                "Payment has insufficient remaining balance."
+                "Payment has no remaining balance to allocate."
             );
 
         var allocatedToInvoice = await _paymentAllocationRepository.GetAllocatedAmountForInvoiceAsync(
@@ -66,22 +66,25 @@ public sealed class AllocatePaymentHandler
             cancellationToken
         );
 
-        var outstanding = invoice.Amount.Amount - allocatedToInvoice.Amount;
+        var outstanding = invoice.GetOutstandingBalance(allocatedToInvoice);
 
-        // if (command.AllocateAmount.Amount > outstanding)
-        //     throw new InvalidOperationException(
-        //         "Allocation amount exceeds invoice outstanding balance."
-        //     );
+        if (outstanding.Amount < command.AllocateAmount.Amount)
+            throw new InvalidOperationException(
+                "Invoice has already been fully settled."
+            );
 
         var allocationAmount = Math.Min( 
             command.AllocateAmount.Amount,
-            Math.Min(remaining, outstanding)
+            Math.Min(remaining.Amount, outstanding.Amount)
         );
 
         var paymentAllocation = PaymentAllocation.Allocate(
             payment.Id,
             invoice.Id,
-            new Money(allocationAmount, command.AllocateAmount.Currency)
+            new Money(
+                allocationAmount, 
+                command.AllocateAmount.Currency
+            )
         );
 
         await _paymentAllocationRepository.AddAsync(
@@ -90,7 +93,7 @@ public sealed class AllocatePaymentHandler
         );
 
         var outstandingAfterAllocation = 
-            outstanding - allocationAmount;
+            outstanding.Amount - allocationAmount;
 
         if (outstandingAfterAllocation == 0)
         {

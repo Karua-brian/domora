@@ -43,7 +43,8 @@ public sealed class ReceivePaymentHandler
             payment.Amount.Amount,
             payment.Amount.Currency,
             payment.PaidAt.ToUniversalTime(),
-            payment.Reference
+            payment.Reference,
+            payment.Version
         );
     }
 }

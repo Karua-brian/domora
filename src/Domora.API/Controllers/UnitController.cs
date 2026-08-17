@@ -16,9 +16,15 @@ public sealed class UnitController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Register(RegisterUnitRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Register(
+        RegisterUnitRequest request, 
+        CancellationToken cancellationToken)
     {
-        var command = new RegisterUnitCommand(request.PropertyId, request.Number, request.Type);
+        var command = new RegisterUnitCommand(
+            request.PropertyId, 
+            request.Number, 
+            request.Type
+            );
 
         var response = await _handler.Handle(command, cancellationToken);
 

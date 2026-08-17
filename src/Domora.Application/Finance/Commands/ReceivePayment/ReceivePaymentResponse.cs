@@ -5,5 +5,6 @@ public sealed record ReceivePaymentResponse(
     decimal Money,
     string Currency,
     DateTimeOffset PaidAt,
-    string Reference
+    string Reference,
+    Guid Version
 );

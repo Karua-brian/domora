@@ -43,5 +43,12 @@ public sealed class InvoiceConfigurations : IEntityTypeConfiguration<Invoice>
             .WithMany()
             .HasForeignKey(x => x.LeaseId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder
+            .Property(x => x.Version)
+            .HasColumnType("uuid")
+            .ValueGeneratedNever()
+            .IsConcurrencyToken()
+            .IsRequired();
     }
 }

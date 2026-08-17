@@ -12,6 +12,8 @@ public class Payment
 
     public string Reference { get; }
 
+    public Guid Version { get; private set; }
+
     private Payment()
     {
         Amount = null;
@@ -22,7 +24,9 @@ public class Payment
         Guid id, 
         Money amount, 
         DateTimeOffset paidAt, 
-        string refrence)
+        string refrence
+        
+        )
     {
         if (id == Guid.Empty)
             throw new ArgumentException("Payment ID is required.", nameof(id));
@@ -31,6 +35,7 @@ public class Payment
         Amount = amount;
         PaidAt = paidAt;
         Reference = refrence;
+        Version = Guid.NewGuid();
     }
 
     public static Payment Receive(
@@ -44,6 +49,14 @@ public class Payment
             amount,
             paidAt,
             reference
+        );
+    }
+
+    public Money GetRemainingBalance(Money allocatedAmount)
+    {
+        return new Money(
+            Amount.Amount - allocatedAmount.Amount,
+            Amount.Currency
         );
     }
 }

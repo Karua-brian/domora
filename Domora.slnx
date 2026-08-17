@@ -5,5 +5,8 @@
     <Project Path="src/Domora.Application/Domora.Application.csproj" />
     <Project Path="src/Domora.Infrastructure/Domora.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Domora.Infrastructure.Tests/Domora.Infrastructure.Tests.csproj" />
+  </Folder>
 
 </Solution>

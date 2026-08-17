@@ -3,6 +3,7 @@ using System;
 using Domora.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Domora.Infrastructure.Migrations
 {
     [DbContext(typeof(DomoraDbContext))]
-    partial class DomoraDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260810201815_AddConcurrencyTokens")]
+    partial class AddConcurrencyTokens
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -102,15 +105,8 @@ namespace Domora.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateOnly?>("EndDate")
-                        .HasColumnType("date");
-
                     b.Property<DateOnly>("StartDate")
                         .HasColumnType("date");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid");
@@ -124,9 +120,7 @@ namespace Domora.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UnitId")
-                        .IsUnique()
-                        .HasFilter("\"Status\" = 'Active'");
+                    b.HasIndex("UnitId");
 
                     b.ToTable("Leases");
                 });
@@ -330,7 +324,7 @@ namespace Domora.Infrastructure.Migrations
                                 .IsRequired()
                                 .HasMaxLength(3)
                                 .HasColumnType("character varying(3)")
-                                .HasColumnName("Currency");
+                                .HasColumnName("MonthlyRentCurrency");
 
                             b1.HasKey("LeaseId");
 

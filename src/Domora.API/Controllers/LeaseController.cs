@@ -18,13 +18,19 @@ public sealed class LeaseController : ControllerBase
     }
 
     [HttpPost]      
-    public async Task<IActionResult> Register(RegisterLeaseRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Register(
+        RegisterLeaseRequest request,
+        CancellationToken cancellationToken)
     {
         var command = new RegisterLeaseCommand(
             request.UnitId,
             request.TenantId,
             request.StartDate,
-            new Money(request.MonthlyRent, request.Currency)
+            new Money(
+                request.MonthlyRent, 
+                request.Currency  
+            )
+
         );
 
         var response = await _handler.Handle(command, cancellationToken);

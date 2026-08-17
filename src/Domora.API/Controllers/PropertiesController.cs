@@ -16,7 +16,10 @@ public sealed class PropertyController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Register(RegisterPropertyRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Register(
+        RegisterPropertyRequest request, 
+        CancellationToken cancellationToken
+        )
     {
         Console.WriteLine($"Registering property with name: {request.Name}");
 

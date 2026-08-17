@@ -15,12 +15,20 @@ public class Invoice
 
     public InvoiceStatus Status { get; private set;}
 
+    public Guid Version { get; private set; } //  
+
     private Invoice()
     {
         Amount = null;
     }
 
-    private Invoice(Guid id, Guid leaseId, Money amount, DateOnly dueDate, InvoiceStatus status)
+    private Invoice(
+        Guid id, 
+        Guid leaseId, 
+        Money amount, 
+        DateOnly dueDate, 
+        InvoiceStatus status
+        )
     {
         if (id == Guid.Empty)
             throw new ArgumentException("Invoice ID is required.", nameof(id));
@@ -33,6 +41,7 @@ public class Invoice
         Amount = amount;
         DueDate = dueDate;
         Status = status;
+        Version = Guid.NewGuid(); 
     }   
 
     public static Invoice Create(
@@ -46,15 +55,26 @@ public class Invoice
             leaseId,
             amount,
             dueDate,
-            InvoiceStatus.Pending
+            InvoiceStatus.Pending        
         );
     }
 
     public void MarkAsPaid()
     {
         if (Status == InvoiceStatus.Paid)
-            throw new InvalidOperationException("Invoice is marked as paid");
+            throw new InvalidOperationException(
+                "Invoice is marked as paid"
+            );
 
         Status = InvoiceStatus.Paid;
+        Version = Guid.NewGuid();
+    }
+
+    public Money GetOutstandingBalance(Money allocatedAmount)
+    {
+        return new Money(
+            Amount.Amount - allocatedAmount.Amount,
+            Amount.Currency
+        );
     }
 }

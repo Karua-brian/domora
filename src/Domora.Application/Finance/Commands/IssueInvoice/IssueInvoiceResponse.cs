@@ -8,5 +8,6 @@ public sealed record IssueInvoiceResponse(
     decimal Money,
     string Currency,
     DateOnly DueDate,
-    InvoiceStatus Status
+    InvoiceStatus Status,
+    Guid Version
 );

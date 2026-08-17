@@ -19,16 +19,30 @@ public sealed class RegisterUnitHandler
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<RegisterUnitResponse> Handle(RegisterUnitCommand command, CancellationToken cancellationToken)
+    public async Task<RegisterUnitResponse> Handle(
+        RegisterUnitCommand command, 
+        CancellationToken cancellationToken
+        )
     {
         var unitNumber = UnitNumber.Create(command.Number);
 
-        var unit = Unit.Register(command.PropertyId, unitNumber, command.Type);
+        var unit = Unit.Register(
+            command.PropertyId, 
+            unitNumber, 
+            command.Type
+        );
 
         await _unitRepository.AddAsync(unit, cancellationToken);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return new RegisterUnitResponse(unit.Id, unit.PropertyId, unit.Number.Value, unit.Type, unit.Status);
+        return new RegisterUnitResponse(
+            unit.Id, 
+            unit.PropertyId, 
+            unit.Number.Value, 
+            unit.Type, 
+            unit.Status,
+            unit.Version
+            );
     }
 }

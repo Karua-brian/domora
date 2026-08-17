@@ -11,22 +11,39 @@ public class Property
 
     public PropertyName Name { get; }
 
-    private Property(Guid id, Guid organizationId, PropertyName name)
+    private Property(
+        Guid id, 
+        Guid organizationId, 
+        PropertyName name
+        )
     {
         if (id == Guid.Empty)
-            throw new ArgumentException("Property ID is required.", nameof(id));
+            throw new ArgumentException(
+                "Property ID is required.", 
+                nameof(id)
+                );
 
         if (organizationId == Guid.Empty)
-            throw new ArgumentException("Organization ID is required.", nameof(organizationId));
+            throw new ArgumentException(
+                "Organization ID is required.",
+                nameof(organizationId)
+                );
                 
         Id = id;
         Name = name;
         OrganizationId = organizationId;
     }
 
-    public static Property Register(Guid organizationId, PropertyName name)
+    public static Property Register(
+        Guid organizationId, 
+        PropertyName name
+        )
     {
-        return new Property(Guid.NewGuid(), organizationId, name);
+        return new Property(
+            Guid.NewGuid(), 
+            organizationId, 
+            name
+        );
     }
 }
 

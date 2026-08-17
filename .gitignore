@@ -2,6 +2,7 @@
 bin/
 obj/
 appsettings.Development.json
+appsettings.Development.Tests.json
 
 # User files
 .vscode/

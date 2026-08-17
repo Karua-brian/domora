@@ -16,7 +16,10 @@ public sealed class OrganizationsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Register(RegisterOrganizationRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Register(
+        RegisterOrganizationRequest request,
+        CancellationToken cancellationToken
+        )
     {
         Console.WriteLine($"Request ID: {Guid.NewGuid()}");
 

@@ -15,11 +15,15 @@ public class Unit
 
     public OccupancyStatus Status { get; private set; }
 
-    private Unit(Guid id, 
+    public Guid Version { get; private set; }
+
+    private Unit(
+        Guid id, 
         Guid propertyId, 
         UnitNumber number, 
         UnitType type, 
-        OccupancyStatus status)
+        OccupancyStatus status
+        )
     {
         if (id == Guid.Empty)
             throw new ArgumentException("Unit ID is required.", nameof(id));
@@ -32,19 +36,22 @@ public class Unit
         Number = number;
         Type = type;
         Status = status;
+        Version = Guid.NewGuid();
     }
 
     public static Unit Register(
         Guid propertyId, 
         UnitNumber number, 
-        UnitType type)
+        UnitType type   
+        )
     {
         return new Unit(
             Guid.NewGuid(), 
             propertyId, 
             number, 
             type, 
-            OccupancyStatus.Vacant);
+            OccupancyStatus.Vacant
+            );
     }
 
     public void Occupy()
@@ -53,5 +60,6 @@ public class Unit
             throw new InvalidOperationException("Unit is already occupied");
 
         Status = OccupancyStatus.Occupied;
+        Version = Guid.NewGuid();
     }
 }

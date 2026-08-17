@@ -22,6 +22,19 @@ public sealed class LeaseConfiguration : IEntityTypeConfiguration<Lease>
         builder
             .Property(x => x.StartDate)
             .IsRequired(); 
+            
+        builder
+            .Property(x => x.EndDate);
+
+        builder
+            .Property(x => x.Status)
+            .HasConversion<string>()
+            .IsRequired();
+
+        builder
+            .HasIndex(x => x.UnitId)
+            .HasFilter("\"Status\" = 'Active'")
+            .IsUnique();
 
         builder
             .HasOne<Unit>()
@@ -40,10 +53,17 @@ public sealed class LeaseConfiguration : IEntityTypeConfiguration<Lease>
                         .IsRequired();
 
                     money.Property(x => x.Currency)
-                        .HasColumnName("MonthlyRentCurrency")
+                        .HasColumnName("Currency")
                         .HasMaxLength(3)
                         .IsRequired();
                 }
             );
+
+        builder
+            .Property(x => x.Version)
+            .HasColumnType("uuid")
+            .ValueGeneratedNever()
+            .IsConcurrencyToken()
+            .IsRequired();
     }
 }

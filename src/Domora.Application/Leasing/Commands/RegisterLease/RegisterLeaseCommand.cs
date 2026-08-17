@@ -8,4 +8,4 @@ public sealed record RegisterLeaseCommand
     Guid TenantId, 
     DateOnly StartDate, 
     Money MonthlyRent
-);
+    );
