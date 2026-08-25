@@ -1,3 +1,5 @@
+using Domora.Domain.Common.Exceptions;
+
 namespace Domora.Domain.Common;
 
 public sealed class Money : IEquatable<Money>
@@ -9,10 +11,10 @@ public sealed class Money : IEquatable<Money>
     public Money(decimal amount, string currency)
     {
         if (amount < 0)
-            throw new ArgumentException("Amount cannot be negative.", nameof(amount));
+            throw new DomainValidationException("Amount cannot be negative.");
 
         if (string.IsNullOrWhiteSpace(currency))
-            throw new ArgumentException("Currency is required.", nameof(currency));
+            throw new DomainValidationException("Currency is required.");
 
         Amount = amount;
         Currency = currency.Trim().ToUpper();    

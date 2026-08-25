@@ -20,11 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Domora.Infrastructure\Domora.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\src\Domora.Domain\Domora.Domain.csproj" />
     <ProjectReference Include="..\..\src\Domora.Application\Domora.Application.csproj" />
-
-
+    <ProjectReference Include="..\..\src\Domora.Infrastructure\Domora.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

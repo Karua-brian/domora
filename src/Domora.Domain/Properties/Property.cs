@@ -1,5 +1,8 @@
 namespace Domora.Domain.Properties;
+
 using Domora.Domain.Properties.ValueObjects;
+using Domora.Domain.Common.Exceptions;
+
 
 // Represents a physical real estate asset managed by an Organization.
 // Business rules and relationships will be added only as they are discovered.
@@ -18,15 +21,13 @@ public class Property
         )
     {
         if (id == Guid.Empty)
-            throw new ArgumentException(
-                "Property ID is required.", 
-                nameof(id)
+            throw new DomainValidationException(
+                "Property ID is required."
                 );
 
         if (organizationId == Guid.Empty)
-            throw new ArgumentException(
-                "Organization ID is required.",
-                nameof(organizationId)
+            throw new DomainValidationException(
+                "Organization ID is required."
                 );
                 
         Id = id;

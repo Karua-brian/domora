@@ -1,3 +1,5 @@
+using Domora.Domain.Common.Exceptions;
+
 namespace Domora.Domain.Organizations.ValueObjects;
 
 public sealed class OrganizationName
@@ -12,7 +14,7 @@ public sealed class OrganizationName
     public static OrganizationName Create(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            throw new ArgumentException("Organization name is required.", nameof(value));
+            throw new DomainValidationException("Organization name is required.");
 
         return new OrganizationName(value);
     }

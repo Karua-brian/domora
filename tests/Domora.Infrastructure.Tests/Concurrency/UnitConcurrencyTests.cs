@@ -20,7 +20,7 @@ public sealed class UnitConcurrencyTests
             "DomoraTest"
         );
 
-        if (string.IsNullOrWhiteSpace(connectionString)) 
+        if (string.IsNullOrWhiteSpace(connectionString))    
             throw new InvalidOperationException(
                 "DomoraTest connection is not configured"
             );
@@ -81,7 +81,7 @@ public sealed class UnitConcurrencyTests
         Assert.Equal(
             OccupancyStatus.Vacant,
             unitA.Status
-        );
+        );  
 
         // Act
         unitA.Occupy();

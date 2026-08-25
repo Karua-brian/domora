@@ -1,5 +1,6 @@
 namespace Domora.Domain.Units;
 
+using Domora.Domain.Common.Exceptions;
 using Domora.Domain.Units.Enums;
 using Domora.Domain.Units.ValueObjects;
 
@@ -26,10 +27,10 @@ public class Unit
         )
     {
         if (id == Guid.Empty)
-            throw new ArgumentException("Unit ID is required.", nameof(id));
+            throw new DomainValidationException("Unit ID is required.");
 
         if (Guid.Empty == propertyId)
-            throw new ArgumentException("Property ID is required.", nameof(propertyId));
+            throw new DomainValidationException("Property ID is required.");
 
         Id = id;
         PropertyId = propertyId;
@@ -57,7 +58,7 @@ public class Unit
     public void Occupy()
     {
         if (Status == OccupancyStatus.Occupied)
-            throw new InvalidOperationException("Unit is already occupied");
+            throw new ResourceConflictException("Unit is already occupied");
 
         Status = OccupancyStatus.Occupied;
         Version = Guid.NewGuid();

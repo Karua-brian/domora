@@ -1,5 +1,6 @@
 namespace Domora.Domain.Organizations;
 
+using Domora.Domain.Common.Exceptions;
 using Domora.Domain.Organizations.ValueObjects;
  
 // Represents an organization that manages properties. 
@@ -12,7 +13,7 @@ public class Organization
     private Organization(Guid id, OrganizationName name)
     {
         if (id == Guid.Empty)
-            throw new ArgumentException("Organization ID is required.", nameof(id));
+            throw new DomainValidationException("Organization ID is required.");
 
         Id = id;
         Name = name;

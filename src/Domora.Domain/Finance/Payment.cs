@@ -1,5 +1,6 @@
 namespace Domora.Domain.Finance;
 
+using Domora.Domain.Common.Exceptions;
 using Domora.Domain.Common;
 
 public class Payment
@@ -29,7 +30,7 @@ public class Payment
         )
     {
         if (id == Guid.Empty)
-            throw new ArgumentException("Payment ID is required.", nameof(id));
+            throw new DomainValidationException("Payment ID is required.");
 
         Id = id;
         Amount = amount;

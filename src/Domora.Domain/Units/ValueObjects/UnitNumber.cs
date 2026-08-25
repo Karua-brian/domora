@@ -1,4 +1,6 @@
 namespace Domora.Domain.Units.ValueObjects;
+using Domora.Domain.Common.Exceptions;
+
 
 public sealed class UnitNumber
 {
@@ -12,7 +14,7 @@ public sealed class UnitNumber
     public static UnitNumber Create(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            throw new ArgumentException("Unit number is required.", nameof(value)); 
+            throw new DomainValidationException("Unit number is required."); 
 
         return new UnitNumber(value);  
     }

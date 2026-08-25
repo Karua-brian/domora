@@ -1,5 +1,7 @@
 using Domora.Domain.Common;
 using Domora.Domain.Leasing.Enums;
+using Domora.Domain.Common.Exceptions;
+
 
 namespace Domora.Domain.Leasing;
 
@@ -36,13 +38,13 @@ public class Lease
         ) 
     {
         if (id == Guid.Empty)
-            throw new ArgumentException("Lease ID is required.", nameof(id));
+            throw new DomainValidationException("Lease ID is required.");
 
         if (unitId == Guid.Empty)
-            throw new ArgumentException("Unit ID is required.", nameof(unitId));
+            throw new DomainValidationException("Unit ID is required.");
 
         if (tenantId == Guid.Empty)
-            throw new ArgumentException("Tenant ID is required.", nameof(tenantId));
+            throw new DomainValidationException("Tenant ID is required.");
 
         Id = id;
         UnitId = unitId;    
@@ -75,14 +77,13 @@ public class Lease
     public void EndLease(DateOnly endDate)
     {
         if (Status == LeaseStatus.Ended)
-            throw new InvalidOperationException(
+            throw new ResourceConflictException(
                 "Lease has already ended."
             );
         
         if (endDate < StartDate)
-            throw new ArgumentException(
-                "End date cannot be earlier than start date.",
-                nameof(endDate)
+            throw new DomainValidationException(
+                "End date cannot be earlier than start date."
             );
 
         Status = LeaseStatus.Ended;

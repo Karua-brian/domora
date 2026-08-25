@@ -1,6 +1,7 @@
 namespace Domora.Domain.Finance;
 
 using Domora.Domain.Common;
+using Domora.Domain.Common.Exceptions;
 using Domora.Domain.Finance.Enums;
 
 public class Invoice
@@ -31,10 +32,10 @@ public class Invoice
         )
     {
         if (id == Guid.Empty)
-            throw new ArgumentException("Invoice ID is required.", nameof(id));
+            throw new DomainValidationException("Invoice ID is required.");
 
         if (leaseId == Guid.Empty)
-            throw new ArgumentException("Lease ID is required.", nameof(leaseId));
+            throw new DomainValidationException("Lease ID is required.");
 
         Id = id;
         LeaseId = leaseId;
@@ -62,7 +63,7 @@ public class Invoice
     public void MarkAsPaid()
     {
         if (Status == InvoiceStatus.Paid)
-            throw new InvalidOperationException(
+            throw new ResourceConflictException(
                 "Invoice is marked as paid"
             );
 

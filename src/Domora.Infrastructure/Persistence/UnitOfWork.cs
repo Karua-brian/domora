@@ -1,6 +1,8 @@
 using Domora.Application.Common.Exceptions;
+using Domora.Domain.Common.Exceptions;
 using Domora.Application.Common.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace Domora.Infrastructure.Persistence;
 
@@ -30,5 +32,16 @@ public sealed class UnitOfWork : IUnitOfWork
                 ex
                 );
         }
+        catch (DbUpdateException ex)
+            when (ex.InnerException is PostgresException postgresException 
+                && postgresException.SqlState == PostgresErrorCodes.UniqueViolation
+                && postgresException.ConstraintName == "IX_Leases_UnitId" 
+                )
+            {
+                throw new ResourceConflictException(
+                    "The unit already has an active lease.",
+                    ex
+                );    
+            }
     }   
 }

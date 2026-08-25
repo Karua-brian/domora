@@ -41,19 +41,22 @@ namespace Domora.Infrastructure.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_PaymentAllocations_InvoiceId",
                 table: "PaymentAllocations",
-                column: "InvoiceId");
+                column: "InvoiceId"
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_PaymentAllocations_PaymentId",
                 table: "PaymentAllocations",
-                column: "PaymentId");
+                column: "PaymentId"
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "PaymentAllocations");
+                name: "PaymentAllocations"
+            );
         }
     }
 }

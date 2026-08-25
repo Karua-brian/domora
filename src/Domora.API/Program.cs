@@ -1,3 +1,4 @@
+using Domora.API.Middleware;
 using Domora.Application.Common.Persistence;
 using Domora.Application.Finance.Commands.AllocatePayment;
 using Domora.Application.Finance.Commands.IssueInvoice;
@@ -70,6 +71,8 @@ builder.Services.AddDbContext<DomoraDbContext>(options =>
 
 // App
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.MapControllers();
 

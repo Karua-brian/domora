@@ -1,5 +1,6 @@
 namespace Domora.Domain.Finance;
 
+using Domora.Domain.Common.Exceptions;
 using Domora.Domain.Common;
 
 public class PaymentAllocation
@@ -25,13 +26,13 @@ public class PaymentAllocation
         Money allocateAmount)
     {
         if (id == Guid.Empty)
-            throw new ArgumentException("Payment allocation ID is required.", nameof(id));
+            throw new DomainValidationException("Payment allocation ID is required.");
 
         if (paymentId == Guid.Empty)
-            throw new ArgumentException("Payment ID is required.", nameof(paymentId));
+            throw new DomainValidationException("Payment ID is required.");
 
         if (invoiceId == Guid.Empty)
-            throw new ArgumentException("Invoice ID is required.", nameof(invoiceId));
+            throw new DomainValidationException("Invoice ID is required.");
 
         Id = id;
         PaymentId = paymentId;
