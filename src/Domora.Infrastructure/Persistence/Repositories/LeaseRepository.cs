@@ -1,4 +1,5 @@
 using Domora.Domain.Leasing;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domora.Infrastructure.Persistence.Repositories;
 
@@ -24,9 +25,16 @@ public sealed class LeaseRepository : ILeaseRepository
         CancellationToken cancellationToken)
     {
         return await _dbContext.Leases
-            .FindAsync(
-                new object[] { id },    
+            .SingleOrDefaultAsync(
+                x => x.Id == id,
                 cancellationToken
-        );
+                );
+    }
+
+    public async Task UpdateAsync(Lease lease, 
+    CancellationToken cancellationToken)
+    {
+        _dbContext.Leases.Update(lease);
+
     }
 }

@@ -23,11 +23,9 @@ public sealed class ReceivePaymentHandler
         CancellationToken cancellationToken
     )
     {
-        var paidAt = command.PaidAt.ToUniversalTime();
 
         var payment = Payment.Receive(
             command.Amount,
-            paidAt,
             command.Reference
         );
 
@@ -40,9 +38,9 @@ public sealed class ReceivePaymentHandler
 
         return new ReceivePaymentResponse(
             payment.Id,
-            payment.Amount.Amount,
-            payment.Amount.Currency,
-            payment.PaidAt.ToUniversalTime(),
+            payment.TotalAmount.Amount,
+            payment.TotalAmount.Currency,
+            payment.PaidAt,
             payment.Reference,
             payment.Version
         );

@@ -1,5 +1,7 @@
+using Domora.Application.Common.Exceptions;
 using Domora.Application.Common.Persistence;
 using Domora.Domain.Common;
+using Domora.Domain.Common.Exceptions;
 using Domora.Domain.Finance;
 
 namespace Domora.Application.Finance.Commands.AllocatePayment;
@@ -36,70 +38,47 @@ public sealed class AllocatePaymentHandler
             command.PaymentId,
             cancellationToken
         );
-
         if (payment is null)
-            throw new InvalidOperationException("Payment not found.");
+            throw new NotFoundException("Payment not found.");
 
         var invoice = await _invoiceRepository.GetByIdAsync(
             command.InvoiceId,
             cancellationToken
         );
-
         if (invoice is null)
-            throw new InvalidOperationException("Invoice not found.");  
+            throw new NotFoundException("Invoice not found.");  
         
         
         var allocatedToPayment = await _paymentAllocationRepository.GetAllocatedAmountForPaymentAsync(
             command.PaymentId,
             cancellationToken
         );
-  
-        var remaining = payment.GetRemainingBalance(allocatedToPayment);
-
-        if (remaining.Amount < command.AllocateAmount.Amount)
-            throw new InvalidOperationException(
-                "Payment has no remaining balance to allocate."
-            );
 
         var allocatedToInvoice = await _paymentAllocationRepository.GetAllocatedAmountForInvoiceAsync(
             command.InvoiceId,
             cancellationToken
         );
 
-        var outstanding = invoice.GetOutstandingBalance(allocatedToInvoice);
+        payment.EnsureCanAllocate(
+            command.AllocateAmount,
+            allocatedToPayment
+        );
 
-        if (outstanding.Amount < command.AllocateAmount.Amount)
-            throw new InvalidOperationException(
-                "Invoice has already been fully settled."
-            );
-
-        var allocationAmount = Math.Min( 
-            command.AllocateAmount.Amount,
-            Math.Min(remaining.Amount, outstanding.Amount)
+        var dynamicAllocationAmount = invoice.AllocatePayment(
+            command.AllocateAmount,
+            allocatedToInvoice 
         );
 
         var paymentAllocation = PaymentAllocation.Allocate(
             payment.Id,
             invoice.Id,
-            new Money(
-                allocationAmount, 
-                command.AllocateAmount.Currency
-            )
+            new Money(dynamicAllocationAmount, command.AllocateAmount.Currency)
         );
 
         await _paymentAllocationRepository.AddAsync(
             paymentAllocation,
             cancellationToken
         );
-
-        var outstandingAfterAllocation = 
-            outstanding.Amount - allocationAmount;
-
-        if (outstandingAfterAllocation == 0)
-        {
-            invoice.MarkAsPaid();
-        }
-
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 

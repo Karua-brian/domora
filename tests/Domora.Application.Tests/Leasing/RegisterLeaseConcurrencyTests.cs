@@ -183,14 +183,12 @@ public sealed class RegisterLeaseConcurrencyTests
         var commandA = new RegisterLeaseCommand(
             unitId,
             tenantA,
-            DateOnly.FromDateTime(DateTime.UtcNow),
             new Money(15000m, "KES")
         );
 
         var commandB = new RegisterLeaseCommand(
             unitId,
             tenantB,
-            DateOnly.FromDateTime(DateTime.UtcNow),
             new Money(15000m, "KES")
         );
 
@@ -217,13 +215,6 @@ public sealed class RegisterLeaseConcurrencyTests
         var successfulOperations = results.Count(x => x.Exception is null);
 
         var conflictFailures = results.Count(x => x.Exception is ResourceConflictException);
-
-        // foreach (var result in results)
-        // {
-        //     Console.WriteLine(
-        //         result.Exception is null ? "SUCCESS" : $"FAILED: {result.Exception.GetType().FullName}"
-        //     );
-        // }
 
         // Assert
         Assert.Equal(1, successfulOperations);

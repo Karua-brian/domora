@@ -27,7 +27,6 @@ public sealed class PaymentController : ControllerBase
     {
         var command = new ReceivePaymentCommand(
             new Money(request.Amount, request.Currency),
-            request.PaidAt.ToUniversalTime(),
             request.Reference
         );
 

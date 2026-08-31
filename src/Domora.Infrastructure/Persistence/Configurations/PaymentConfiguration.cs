@@ -12,7 +12,7 @@ public sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.HasKey(x => x.Id);
 
         builder
-            .OwnsOne(x => x.Amount, money =>
+            .OwnsOne(x => x.TotalAmount, money =>
             {
                 money.Property(x => x.Amount)
                     .HasColumnName("Amount")

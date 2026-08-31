@@ -20,10 +20,11 @@ public sealed class UnitRepository : IUnitRepository
 
     public async Task<Unit?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        return await _dbContext.Units.FirstOrDefaultAsync(
-            unit => unit.Id == id,
-            cancellationToken
-        );
+        return await _dbContext.Units
+            .SingleOrDefaultAsync(
+                unit => unit.Id == id,
+                cancellationToken
+            );
     }
 
     public async Task UpdateAsync(Unit unit, CancellationToken cancellationToken)

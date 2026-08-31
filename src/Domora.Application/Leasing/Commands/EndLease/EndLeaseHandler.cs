@@ -3,53 +3,51 @@ using Domora.Application.Common.Persistence;
 using Domora.Domain.Leasing;
 using Domora.Domain.Units;
 
-namespace Domora.Application.Leasing.Commands.RegisterLease;
+namespace Domora.Application.Leasing.Commands.EndLease;
 
-public sealed class RegisterLeaseHandler
+public sealed class EndLeaseHandler
 {
     private readonly ILeaseRepository _leaseRepository;
-    
+
     private readonly IUnitRepository _unitRepository;
 
     private readonly IUnitOfWork _unitOfWork;
 
-
-    public RegisterLeaseHandler(
+    public EndLeaseHandler(
         ILeaseRepository leaseRepository,
         IUnitRepository unitRepository,
         IUnitOfWork unitOfWork
-        )
+    )
     {
         _leaseRepository = leaseRepository;
         _unitRepository = unitRepository;
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<RegisterLeaseResponse> Handle(
-        RegisterLeaseCommand command, 
+    public async Task<EndLeaseResponse> Handle(
+        EndLeaseCommand command,
         CancellationToken cancellationToken
-        )
+    )
     {
+        var lease = await _leaseRepository.GetByIdAsync(
+            command.LeaseId,
+            cancellationToken
+        );
+
+        if (lease is null)
+            throw new NotFoundException(
+                "Lease not found."
+            );
+
         var unit = await _unitRepository.GetByIdAsync(
-            command.UnitId,
+            lease.UnitId,
             cancellationToken
-        );
+        ) ?? throw new NotFoundException(
+                "Unit not found."
+            );
 
-        if (unit is null)
-            throw new NotFoundException("Unit not found.");
-
-        unit.Occupy(); 
-
-        var lease = Lease.Register(
-            unit.Id,
-            command.TenantId,
-            command.MonthlyRent
-        );
-
-        await _leaseRepository.AddAsync(
-            lease, 
-            cancellationToken
-        );
+        lease.EndLease(command.EndDate);
+        unit.Vacate();
 
         await _unitRepository.UpdateAsync(
             unit,
@@ -58,15 +56,14 @@ public sealed class RegisterLeaseHandler
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return new RegisterLeaseResponse(
+        return new EndLeaseResponse(
             lease.Id,
             lease.UnitId,
             lease.TenantId,
             lease.StartDate,
-            lease.MonthlyRent.Amount,
-            lease.MonthlyRent.Currency,
+            lease.EndDate!.Value,
             lease.Status,
             lease.Version
         );
-    } 
+    }
 }

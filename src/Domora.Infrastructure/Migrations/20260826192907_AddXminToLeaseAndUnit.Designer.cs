@@ -3,6 +3,7 @@ using System;
 using Domora.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Domora.Infrastructure.Migrations
 {
     [DbContext(typeof(DomoraDbContext))]
-    partial class DomoraDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260826192907_AddXminToLeaseAndUnit")]
+    partial class AddXminToLeaseAndUnit
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -119,6 +122,7 @@ namespace Domora.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("uuid");
 
                     b.Property<uint>("xmin")
@@ -200,6 +204,7 @@ namespace Domora.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("uuid");
 
                     b.Property<uint>("xmin")

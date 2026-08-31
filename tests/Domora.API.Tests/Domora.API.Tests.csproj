@@ -9,8 +9,6 @@
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.10" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.10" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
@@ -21,8 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Domora.Application\Domora.Application.csproj" />
-    <ProjectReference Include="..\..\src\Domora.Infrastructure\Domora.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Domora.API\Domora.API.csproj" />
   </ItemGroup>
 
 </Project>

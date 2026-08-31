@@ -58,12 +58,17 @@ public sealed class LeaseConfiguration : IEntityTypeConfiguration<Lease>
                         .IsRequired();
                 }
             );
+        
+        builder.Property<uint>("xmin")
+            .HasColumnType("xid")
+            .ValueGeneratedOnAddOrUpdate()
+            .IsRowVersion();
+
 
         builder
             .Property(x => x.Version)
             .HasColumnType("uuid")
             .ValueGeneratedNever()
-            .IsConcurrencyToken()
             .IsRequired();
     }
 }

@@ -27,6 +27,7 @@ public sealed class UnitOfWork : IUnitOfWork
         }
         catch (DbUpdateConcurrencyException ex)
         {
+
             throw new ConcurrencyException(
                 "The resource was modified by another operation.",
                 ex
@@ -38,6 +39,7 @@ public sealed class UnitOfWork : IUnitOfWork
                 && postgresException.ConstraintName == "IX_Leases_UnitId" 
                 )
             {
+
                 throw new ResourceConflictException(
                     "The unit already has an active lease.",
                     ex

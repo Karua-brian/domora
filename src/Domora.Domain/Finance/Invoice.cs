@@ -71,11 +71,43 @@ public class Invoice
         Version = Guid.NewGuid();
     }
 
-    public Money GetOutstandingBalance(Money allocatedAmount)
+    public Money GetOutstandingBalance(Money allocatedToInvoice)
     {
         return new Money(
-            Amount.Amount - allocatedAmount.Amount,
+            Amount.Amount - allocatedToInvoice.Amount,
             Amount.Currency
         );
+    }
+
+    public decimal AllocatePayment(
+        Money allocateAmount,
+        Money allocatedToInvoiceSoFar
+    )
+    {
+        var outstanding = GetOutstandingBalance(allocatedToInvoiceSoFar);
+
+        if (outstanding.Amount <= 0)
+            throw new ResourceConflictException(
+                "Invoice has already been fully settled."
+            );
+
+        if (outstanding.Amount < allocateAmount.Amount)
+            throw new DomainValidationException(
+                $"Allocation amount exceeds the invoice outstanding balance"
+            ); 
+        
+        // Calculate final processed allocation bounds
+        var allocationAmount = Math.Min(
+            allocateAmount.Amount, outstanding.Amount
+        );
+
+        var outstandingAfterAllocation = outstanding.Amount - allocationAmount;
+
+        if (outstandingAfterAllocation == 0)
+        {
+            MarkAsPaid();
+        }
+
+        return allocationAmount;
     }
 }

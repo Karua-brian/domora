@@ -7,7 +7,7 @@ public class Payment
 {
     public Guid Id { get; }
 
-    public Money Amount { get; }
+    public Money TotalAmount { get; }
 
     public DateTimeOffset PaidAt { get; }
 
@@ -17,7 +17,7 @@ public class Payment
 
     private Payment()
     {
-        Amount = null;
+        TotalAmount = null;
         Reference = null;
     }
 
@@ -33,7 +33,7 @@ public class Payment
             throw new DomainValidationException("Payment ID is required.");
 
         Id = id;
-        Amount = amount;
+        TotalAmount = amount;
         PaidAt = paidAt;
         Reference = refrence;
         Version = Guid.NewGuid();
@@ -41,23 +41,37 @@ public class Payment
 
     public static Payment Receive(
         Money amount,
-        DateTimeOffset paidAt,
         string reference
     )
     {
         return new Payment(
             Guid.NewGuid(),
             amount,
-            paidAt,
+            DateTimeOffset.UtcNow,
             reference
         );
     }
 
-    public Money GetRemainingBalance(Money allocatedAmount)
+    public Money GetRemainingBalance(
+        Money allocatedToPayment
+    )
     {
         return new Money(
-            Amount.Amount - allocatedAmount.Amount,
-            Amount.Currency
+            TotalAmount.Amount - allocatedToPayment.Amount,
+            TotalAmount.Currency
         );
+    }
+
+    public void EnsureCanAllocate(
+        Money allocateAmount,
+        Money allocatedToPaymentSoFar
+    )
+    {
+        var remaining = GetRemainingBalance(allocatedToPaymentSoFar);
+
+        if (remaining.Amount < allocateAmount.Amount);
+            throw new DomainValidationException(
+                "Payment has insufficient remaining balance to satisfy this allocation request."
+            );
     }
 }

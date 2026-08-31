@@ -52,7 +52,7 @@ public sealed class PaymentAllocationRepository : IPaymentAllocationRepository
             .Where(x => x.PaymentId == paymentId)
             .SumAsync(x => x.AllocateAmount.Amount, cancellationToken);
 
-        return new Money(allocatedAmount, payment.Amount.Currency);
+        return new Money(allocatedAmount, payment.TotalAmount.Currency);
     }
 
     public async Task<Money> GetAllocatedAmountForInvoiceAsync(

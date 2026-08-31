@@ -6,6 +6,5 @@ public sealed record RegisterLeaseCommand
 (
     Guid UnitId, 
     Guid TenantId, 
-    DateOnly StartDate, 
     Money MonthlyRent
     );

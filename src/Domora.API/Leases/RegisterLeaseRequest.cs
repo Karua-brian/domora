@@ -1,4 +1,4 @@
-using Domora.Domain.Common;
+using System.ComponentModel.DataAnnotations;
 
 namespace Domora.API.Leases;
 
@@ -6,7 +6,10 @@ public sealed record RegisterLeaseRequest
 (
     Guid UnitId, 
     Guid TenantId, 
-    DateOnly StartDate,
+
+    [Range(0.01, double.MaxValue)]
     decimal MonthlyRent,
+
+    [Required]
     string Currency
 );

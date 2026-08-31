@@ -3,6 +3,7 @@ using Domora.Application.Common.Persistence;
 using Domora.Application.Finance.Commands.AllocatePayment;
 using Domora.Application.Finance.Commands.IssueInvoice;
 using Domora.Application.Finance.Commands.ReceivePayment;
+using Domora.Application.Leasing.Commands.EndLease;
 using Domora.Application.Leasing.Commands.RegisterLease;
 using Domora.Application.Organizations.Commands.RegisterOrganization;
 using Domora.Application.Properties.Commands.RegisterProperty;
@@ -38,6 +39,8 @@ builder.Services.AddScoped<RegisterPropertyHandler>();
 builder.Services.AddScoped<RegisterUnitHandler>();
 
 builder.Services.AddScoped<RegisterLeaseHandler>();
+
+builder.Services.AddScoped<EndLeaseHandler>();
 
 builder.Services.AddScoped<IssueInvoiceHandler>();
 

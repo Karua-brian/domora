@@ -24,6 +24,15 @@ public sealed class PropertyConfiguration : IEntityTypeConfiguration<Property>
             )
             .HasMaxLength(100)
             .IsRequired();
+
+        builder
+            .HasIndex(p => new
+            {
+                p.OrganizationId,
+                p.Name
+            })
+            .HasDatabaseName("UX_Properties_OrganizationId_Name")
+            .IsUnique();
             
         builder
             .HasOne<Organization>()

@@ -19,7 +19,10 @@ public sealed class RegisterOrganizationHandler
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<RegisterOrganizationResponse> Handle(RegisterOrganizationCommand command, CancellationToken cancellationToken)
+    public async Task<RegisterOrganizationResponse> Handle(
+        RegisterOrganizationCommand command, 
+        CancellationToken cancellationToken
+        )
     {
         Console.WriteLine($"Handling RegisterOrganizationCommand for organization name: {command.Name}");
         

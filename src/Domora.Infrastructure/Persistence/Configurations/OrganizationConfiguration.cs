@@ -19,6 +19,10 @@ public sealed class OrganizationConfiguration : IEntityTypeConfiguration<Organiz
                 value => OrganizationName.Create(value)
             )
             .HasMaxLength(100);
+
+        builder
+            .HasIndex(o => o.Name)
+            .IsUnique();
     }
 }
 

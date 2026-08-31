@@ -1,3 +1,4 @@
+using Domora.Application.Common.Exceptions;
 using Domora.Application.Common.Persistence;
 using Domora.Domain.Finance;
 using Domora.Domain.Leasing;
@@ -34,7 +35,7 @@ public sealed class IssueInvoiceHandler
         );
 
         if (lease is null)
-            throw new InvalidOperationException("Lease not found.");
+            throw new NotFoundException("Lease not found.");
 
         var invoice = Invoice.Create(
             lease.Id,

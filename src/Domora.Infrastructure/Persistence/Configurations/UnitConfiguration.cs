@@ -24,6 +24,15 @@ public sealed class UnitConfiguration : IEntityTypeConfiguration<Unit>
             );
 
         builder
+            .HasIndex(x => new
+            {
+               x.PropertyId,
+               x.Number 
+            })
+            .HasDatabaseName("UX_Units_ProprtyId_Number")
+            .IsUnique();
+
+        builder
             .Property(x => x.Type)
             .HasConversion<string>();
 
@@ -35,13 +44,17 @@ public sealed class UnitConfiguration : IEntityTypeConfiguration<Unit>
             .HasOne<Property>()
             .WithMany()
             .HasForeignKey(x => x.PropertyId)
-            .OnDelete(DeleteBehavior.Restrict);    
+            .OnDelete(DeleteBehavior.Restrict); 
+
+        builder.Property<uint>("xmin")
+            .HasColumnType("xid")
+            .ValueGeneratedOnAddOrUpdate()
+            .IsRowVersion();   
 
         builder
             .Property(x => x.Version)
             .HasColumnType("uuid")
             .ValueGeneratedNever()
-            .IsConcurrencyToken()
             .IsRequired();
     }
 }

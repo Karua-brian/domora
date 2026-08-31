@@ -60,7 +60,6 @@ public class Lease
     public static Lease Register(
         Guid unitId, 
         Guid tenantId, 
-        DateOnly startDate, 
         Money monthlyRent
         )
     {
@@ -68,7 +67,7 @@ public class Lease
             Guid.NewGuid(), 
             unitId, 
             tenantId, 
-            startDate, 
+            DateOnly.FromDateTime(DateTime.UtcNow), 
             monthlyRent,
             LeaseStatus.Active
         );    

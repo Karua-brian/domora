@@ -3,6 +3,7 @@ using System;
 using Domora.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Domora.Infrastructure.Migrations
 {
     [DbContext(typeof(DomoraDbContext))]
-    partial class DomoraDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260826073558_MakeUnitNumberUnique")]
+    partial class MakeUnitNumberUnique
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -119,13 +122,8 @@ namespace Domora.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("Version")
-                        .HasColumnType("uuid");
-
-                    b.Property<uint>("xmin")
                         .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -149,9 +147,6 @@ namespace Domora.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Name")
-                        .IsUnique();
-
                     b.ToTable("Organizations");
                 });
 
@@ -171,9 +166,7 @@ namespace Domora.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrganizationId", "Name")
-                        .IsUnique()
-                        .HasDatabaseName("UX_Properties_OrganizationId_Name");
+                    b.HasIndex("OrganizationId");
 
                     b.ToTable("Properties");
                 });
@@ -200,13 +193,8 @@ namespace Domora.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<Guid>("Version")
-                        .HasColumnType("uuid");
-
-                    b.Property<uint>("xmin")
                         .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -255,7 +243,7 @@ namespace Domora.Infrastructure.Migrations
 
             modelBuilder.Entity("Domora.Domain.Finance.Payment", b =>
                 {
-                    b.OwnsOne("Domora.Domain.Common.Money", "TotalAmount", b1 =>
+                    b.OwnsOne("Domora.Domain.Common.Money", "Amount", b1 =>
                         {
                             b1.Property<Guid>("PaymentId")
                                 .HasColumnType("uuid");
@@ -279,7 +267,7 @@ namespace Domora.Infrastructure.Migrations
                                 .HasForeignKey("PaymentId");
                         });
 
-                    b.Navigation("TotalAmount")
+                    b.Navigation("Amount")
                         .IsRequired();
                 });
 
