@@ -23,7 +23,7 @@ public sealed class PropertyController : ControllerBase
     {
         Console.WriteLine($"Registering property with name: {request.Name}");
 
-        var command = new RegisterPropertyCommand(request.OrganizationId, request.Name);
+        var command = new RegisterPropertyCommand(request.Name);
 
         var response = await _handler.Handle(command, cancellationToken);
 

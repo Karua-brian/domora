@@ -1,4 +1,6 @@
+using Domora.API.Common;
 using Domora.API.Middleware;
+using Domora.Application.Common.Context;
 using Domora.Application.Common.Persistence;
 using Domora.Application.Finance.Commands.AllocatePayment;
 using Domora.Application.Finance.Commands.IssueInvoice;
@@ -30,6 +32,9 @@ builder.Services
             new JsonStringEnumConverter()); 
     });
 
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddScoped<IOrganizationContext, OrganizationContext>();
 
 // Application
 builder.Services.AddScoped<RegisterOrganizationHandler>();
@@ -48,6 +53,7 @@ builder.Services.AddScoped<ReceivePaymentHandler>();
 
 builder.Services.AddScoped<AllocatePaymentHandler>();
 
+
 // Infrastructure
 builder.Services.AddScoped<IOrganizationRepository, OrganizationRepository>();
 
@@ -64,6 +70,7 @@ builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IPaymentAllocationRepository, PaymentAllocationRepository>();
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
 
 // Database
 builder.Services.AddDbContext<DomoraDbContext>(options =>

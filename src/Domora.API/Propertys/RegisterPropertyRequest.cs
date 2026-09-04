@@ -1,3 +1,5 @@
 namespace Domora.API.Propertys;
 
-public sealed record RegisterPropertyRequest(Guid OrganizationId, string Name);
+public sealed record RegisterPropertyRequest(
+    string Name
+);

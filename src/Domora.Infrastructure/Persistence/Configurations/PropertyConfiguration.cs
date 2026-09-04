@@ -13,7 +13,7 @@ public sealed class PropertyConfiguration : IEntityTypeConfiguration<Property>
         builder.HasKey(x => x.Id);
 
         builder
-            .Property(x => x.OrganizationId) //
+            .Property(x => x.OrganizationId) 
             .IsRequired();
 
         builder

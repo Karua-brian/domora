@@ -12,13 +12,22 @@ public sealed class UnitRepository : IUnitRepository
         _dbContext = dbContext;
     }
 
-    public async Task AddAsync(Unit unit, CancellationToken cancellationToken)
+    public async Task AddAsync(
+        Unit unit, 
+        CancellationToken cancellationToken
+    )
     {
-        await _dbContext.Units.AddAsync(unit, cancellationToken);
+        await _dbContext.Units.AddAsync(
+            unit, 
+            cancellationToken
+        );
 
     }
 
-    public async Task<Unit?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<Unit?> GetByIdAsync(
+        Guid id, 
+        CancellationToken cancellationToken
+    )
     {
         return await _dbContext.Units
             .SingleOrDefaultAsync(
@@ -27,7 +36,10 @@ public sealed class UnitRepository : IUnitRepository
             );
     }
 
-    public async Task UpdateAsync(Unit unit, CancellationToken cancellationToken)
+    public async Task UpdateAsync(
+        Unit unit, 
+        CancellationToken cancellationToken
+    )
     {
         _dbContext.Units.Update(unit);
 
