@@ -9,6 +9,7 @@ using Domora.Application.Leasing.Commands.EndLease;
 using Domora.Application.Leasing.Commands.RegisterLease;
 using Domora.Application.Organizations.Commands.RegisterOrganization;
 using Domora.Application.Properties.Commands.RegisterProperty;
+using Domora.Application.Properties.Queries.GetProperty;
 using Domora.Application.Units.Commands.RegisterUnit;
 using Domora.Domain.Finance;
 using Domora.Domain.Leasing;
@@ -40,6 +41,8 @@ builder.Services.AddScoped<IOrganizationContext, OrganizationContext>();
 builder.Services.AddScoped<RegisterOrganizationHandler>();
 
 builder.Services.AddScoped<RegisterPropertyHandler>();
+
+builder.Services.AddScoped<GetPropertyHandler>();
 
 builder.Services.AddScoped<RegisterUnitHandler>();
 

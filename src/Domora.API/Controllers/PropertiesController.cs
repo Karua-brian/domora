@@ -1,5 +1,6 @@
 using Domora.API.Propertys;
 using Domora.Application.Properties.Commands.RegisterProperty;
+using Domora.Application.Properties.Queries.GetProperty;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Domora.API.Controllers;
@@ -8,11 +9,17 @@ namespace Domora.API.Controllers;
 [Route("api/properties")]
 public sealed class PropertyController : ControllerBase
 {
-    public readonly RegisterPropertyHandler _handler;
+    private readonly RegisterPropertyHandler _registerPropertyHandler;
 
-    public PropertyController(RegisterPropertyHandler handler)
+    private readonly GetPropertyHandler _getPropertyHandler;
+
+    public PropertyController(
+        RegisterPropertyHandler registerPropertyHandler,
+        GetPropertyHandler getPropertyHandler
+    )
     {
-        _handler = handler;
+        _registerPropertyHandler = registerPropertyHandler;
+        _getPropertyHandler = getPropertyHandler;
     }
 
     [HttpPost]
@@ -21,12 +28,28 @@ public sealed class PropertyController : ControllerBase
         CancellationToken cancellationToken
         )
     {
-        Console.WriteLine($"Registering property with name: {request.Name}");
 
         var command = new RegisterPropertyCommand(request.Name);
 
-        var response = await _handler.Handle(command, cancellationToken);
+        var response = await _registerPropertyHandler.Handle(
+            command,
+            cancellationToken
+        );
 
         return Created($"/api/properties/{response.Id}" ,response);
+    }
+
+    [HttpGet("{propertyId:guid}")]
+    public async Task<IActionResult> Get(
+        Guid propertyId,
+        CancellationToken cancellationToken
+    )
+    {
+        var response = await _getPropertyHandler.Handle(
+            new GetPropertyQuery(propertyId),
+            cancellationToken
+        );
+
+        return Ok(response);
     }
 }

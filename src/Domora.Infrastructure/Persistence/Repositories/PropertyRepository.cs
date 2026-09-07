@@ -25,13 +25,16 @@ public sealed class PropertyRepository : IPropertyRepository
     }
 
     public async Task<Property?> GetByIdAsync(
-        Guid id,
+        Guid propertyId,
+        Guid organizationId,
         CancellationToken cancellationToken
     )
     {
         return await _dbContext.Properties
             .SingleOrDefaultAsync(
-                p => p.Id == id,
+                p  => 
+                    p.Id == propertyId &&
+                    p.OrganizationId == organizationId,
                 cancellationToken
             );
     }

@@ -1,7 +1,11 @@
 using Domora.Application.Common.Context;
+using Domora.Application.Common.Exceptions;
 using Domora.Application.Properties.Commands.RegisterProperty;
+using Domora.Application.Properties.Queries.GetProperty;
 using Domora.Domain.Organizations;
 using Domora.Domain.Organizations.ValueObjects;
+using Domora.Domain.Properties;
+using Domora.Domain.Properties.ValueObjects;
 using Domora.Infrastructure.Persistence;
 using Domora.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -40,8 +44,6 @@ public sealed class RegisterPropertyTests
     public async Task Register_property_should_use_organization_from_context()
     {
         // Arrange
-        var organizationId = Guid.NewGuid();
-
         await using var context = new DomoraDbContext(_options);
 
         var organization = Organization.Register(
@@ -54,9 +56,7 @@ public sealed class RegisterPropertyTests
         await context.SaveChangesAsync();
 
         // Use the actual persisted organization Id
-        organizationId = organization.Id;
-
-        var organizationContext = new TestOrganizationContext(organizationId);
+        var organizationContext = new TestOrganizationContext(organization.Id);
 
         var handler = new RegisterPropertyHandler(
             new PropertyRepository(context),
@@ -76,7 +76,7 @@ public sealed class RegisterPropertyTests
 
         // Assert
         Assert.Equal(
-            organizationId,
+            organization.Id,
             response.OrganizationId
         );
 
@@ -86,7 +86,7 @@ public sealed class RegisterPropertyTests
             .SingleAsync(p => p.Id == response.Id);
 
         Assert.Equal(
-            organizationId,
+            organization.Id,
             persistedProperty.OrganizationId
         );
     }

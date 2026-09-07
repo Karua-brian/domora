@@ -8,7 +8,8 @@ public interface IPropertyRepository
     );
 
     Task<Property?> GetByIdAsync(
-        Guid id,
+        Guid propertyId,
+        Guid organizationId,
         CancellationToken cancellationToken = default
     );
 }
