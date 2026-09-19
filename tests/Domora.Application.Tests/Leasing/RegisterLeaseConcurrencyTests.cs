@@ -12,6 +12,7 @@ using Domora.Domain.Units.ValueObjects;
 using Domora.Infrastructure.Persistence;
 using Domora.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Domora.Application.Common.Context;
 
 namespace Domora.Application.Tests.Leasing;
 
@@ -33,6 +34,15 @@ public sealed class RegisterLeaseConcurrencyTests
             .Options;
     }
 
+    private sealed class TestOrganizationContext : IOrganizationContext
+    {
+        public TestOrganizationContext(Guid organizationId)
+        {
+            OrganizationId = organizationId;
+        }
+
+        public Guid OrganizationId { get; }
+    }
     private async Task<Guid> CreateTestUnitAsync()
     {
         await using var context = new DomoraDbContext(_options);
@@ -168,16 +178,18 @@ public sealed class RegisterLeaseConcurrencyTests
             barrier
         );
 
+        var organizationContext = new TestOrganizationContext(Guid.NewGuid());
+
         var handlerA = new RegisterLeaseHandler(
             new LeaseRepository(contextA),
             unitRepositoryA,
-            new UnitOfWork(contextA)
+            new UnitOfWork(contextA, organizationContext)
         );
 
         var handlerB = new RegisterLeaseHandler(
             new LeaseRepository(contextB),
             unitRepositoryB,
-            new UnitOfWork(contextB)
+            new UnitOfWork(contextB, organizationContext)
         );
 
         var commandA = new RegisterLeaseCommand(

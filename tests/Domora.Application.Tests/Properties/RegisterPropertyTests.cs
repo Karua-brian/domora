@@ -61,7 +61,7 @@ public sealed class RegisterPropertyTests
         var handler = new RegisterPropertyHandler(
             new PropertyRepository(context),
             organizationContext,
-            new UnitOfWork(context)
+            new UnitOfWork(context, organizationContext)
         );
 
         var command = new RegisterPropertyCommand(
@@ -89,5 +89,26 @@ public sealed class RegisterPropertyTests
             organization.Id,
             persistedProperty.OrganizationId
         );
+    }
+
+    [Fact]
+    public async Task Beginning_transaction_without_organization_context_should_fail()
+    {
+        await using var context = new DomoraDbContext(_options);
+
+        var organizationContext = new TestOrganizationContext(Guid.Empty);
+
+        var unitOfWork = new UnitOfWork(
+            context,
+            organizationContext
+        );
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            async () =>
+            {
+                await unitOfWork.BeginTransactionAsync(CancellationToken.None);
+            }
+        );
+
     }
 }

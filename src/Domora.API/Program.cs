@@ -17,6 +17,7 @@ using Domora.Domain.Organizations;
 using Domora.Domain.Properties;
 using Domora.Domain.Units;
 using Domora.Infrastructure.Persistence;
+using Domora.Infrastructure.Persistence.Interceptors;
 using Domora.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
@@ -74,11 +75,19 @@ builder.Services.AddScoped<IPaymentAllocationRepository, PaymentAllocationReposi
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-
+builder.Services.AddScoped<OrganizationTransactionInterceptor>();
 // Database
-builder.Services.AddDbContext<DomoraDbContext>(options =>
+builder.Services.AddDbContext<DomoraDbContext>(
+    (serviceProvider, options) =>
 {
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DomoraDb"));
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("DomoraDb")
+    );
+
+    options.AddInterceptors(
+        serviceProvider.GetRequiredService<OrganizationTransactionInterceptor>()
+    );
+
 });
 
 

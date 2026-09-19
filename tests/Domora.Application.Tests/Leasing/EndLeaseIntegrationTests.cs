@@ -1,3 +1,4 @@
+using Domora.Application.Common.Context;
 using Domora.Application.Common.Exceptions;
 using Domora.Application.Leasing.Commands.EndLease;
 using Domora.Domain.Common;
@@ -33,6 +34,16 @@ public sealed class EndLeaseIntegrationTests
         _options = new DbContextOptionsBuilder<DomoraDbContext>{}
             .UseNpgsql(connectionString)
             .Options;
+    }
+
+    private sealed class TestOrganizationContext : IOrganizationContext
+    {
+        public TestOrganizationContext(Guid organizationId)
+        {
+            OrganizationId = organizationId;
+        }
+
+        public Guid OrganizationId { get; }
     }
 
     private async Task<(Guid UnitId, Guid LeaseId)> CreateTestActiveLeaseAsync()
@@ -206,10 +217,12 @@ public sealed class EndLeaseIntegrationTests
 
         await using var context = new DomoraDbContext(_options);
 
+        var organizationContext = new TestOrganizationContext(Guid.NewGuid());
+
         var handler = new EndLeaseHandler(
             new LeaseRepository(context),
             new UnitRepository(context),
-            new UnitOfWork(context)
+            new UnitOfWork(context, organizationContext)
         );
 
         var command = new EndLeaseCommand(
@@ -266,10 +279,12 @@ public sealed class EndLeaseIntegrationTests
 
         await using var contextExecution = new DomoraDbContext(_options);
 
+        var organizationContext = new TestOrganizationContext(Guid.NewGuid());
+
         var handler = new EndLeaseHandler(
             new LeaseRepository(contextExecution),
             new UnitRepository(contextExecution),
-            new UnitOfWork(contextExecution)
+            new UnitOfWork(contextExecution, organizationContext)
         );
 
         var command = new EndLeaseCommand(
@@ -295,10 +310,12 @@ public sealed class EndLeaseIntegrationTests
 
         await using var context = new DomoraDbContext(_options);
 
+        var organizationContext = new TestOrganizationContext(Guid.NewGuid());
+
         var handler = new EndLeaseHandler(
             new LeaseRepository(context),
             new UnitRepository(context),
-            new UnitOfWork(context)
+            new UnitOfWork(context, organizationContext)
         );
 
         var invalidBeforeDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-5);
@@ -359,16 +376,18 @@ public sealed class EndLeaseIntegrationTests
             unitBarrier
         );
 
+        var organizationContext = new TestOrganizationContext(Guid.NewGuid());
+
         var handlerA = new EndLeaseHandler(
             coordinatedRepoA,
             coordinatedUnitRepoA,
-            new UnitOfWork(contextA)
+            new UnitOfWork(contextA, organizationContext)
         );
 
         var handlerB = new EndLeaseHandler(
             coordinatedRepoB,
             coordinatedUnitRepoB,
-            new UnitOfWork(contextB)
+            new UnitOfWork(contextB, organizationContext)
         );
 
         var commandA = new EndLeaseCommand(leaseId, DateOnly.FromDateTime(DateTime.UtcNow));

@@ -46,14 +46,14 @@ public sealed class GetPropertyTests
         await using var context = new DomoraDbContext(_options);
 
         var organization = Organization.Register(
-            OrganizationName.Create($"Same Org Test")
+            OrganizationName.Create($"Same Org Test {Guid.NewGuid():N}")
         );
 
         await context.Organizations.AddAsync(organization);
 
         var property = Property.Register(
             organization.Id,
-            PropertyName.Create($"Same Org Property")
+            PropertyName.Create($"Same Org Property {Guid.NewGuid():N}")
         );
 
         await context.Properties.AddAsync(property);
@@ -85,11 +85,11 @@ public sealed class GetPropertyTests
         await using var context = new DomoraDbContext(_options);
 
         var organizationA = Organization.Register(
-            OrganizationName.Create("Organization A")
+            OrganizationName.Create($"Organization A {Guid.NewGuid():N}")
         );
 
         var organizationB = Organization.Register(
-            OrganizationName.Create("Organization B")
+            OrganizationName.Create($"Organization B {Guid.NewGuid():N}")
         );
 
         await context.Organizations.AddRangeAsync(
@@ -99,7 +99,7 @@ public sealed class GetPropertyTests
 
         var property = Property.Register(
             organizationA.Id,
-            PropertyName.Create("Property A")
+            PropertyName.Create($"Property A {Guid.NewGuid():N}")
         );
 
         await context.Properties.AddAsync(property);
@@ -134,7 +134,7 @@ public sealed class GetPropertyTests
         await using var context = new DomoraDbContext(_options);
 
         var organization = Organization.Register(
-            OrganizationName.Create("Nonexistent Test Org")
+            OrganizationName.Create($"Nonexistent Test Org {Guid.NewGuid():N}")
         );
 
         await context.Organizations.AddAsync(organization);
