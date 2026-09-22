@@ -18,11 +18,17 @@ namespace Domora.Infrastructure.Migrations
             ON "Properties"
             USING (
                 "OrganizationId" =
-                 current_setting('app.organization_id', true)::uuid 
+                NULLIF(
+                    current_setting('app.organization_id', true),
+                    ''
+                )::uuid
             )
             WITH CHECK (
                 "OrganizationId" =
-                current_setting('app.organization_id', true)::uuid
+                NULLIF(
+                    current_setting('app.organization_id', true),
+                    ''
+                )::uuid
             );
             """);
 

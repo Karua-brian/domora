@@ -38,15 +38,6 @@ public sealed class DomoraDbContext : DbContext
         CancellationToken cancellationToken = default
     )
     {
-        // foreach (var entry in ChangeTracker.Entries())
-        // {
-        //     if (entry.State == EntityState.Modified &&
-        //         entry.Metadata.FindProperty("Version") is not null)
-        //     {
-        //         entry.Property("Version").CurrentValue = Guid.NewGuid();
-        //     }
-        // }
-
         return await base.SaveChangesAsync(cancellationToken);
     }
 }

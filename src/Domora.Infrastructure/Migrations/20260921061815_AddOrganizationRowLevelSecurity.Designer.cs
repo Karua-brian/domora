@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Domora.Infrastructure.Migrations
 {
     [DbContext(typeof(DomoraDbContext))]
-    [Migration("20260914062514_AddOrganizationRowLevelSecurity")]
+    [Migration("20260921061815_AddOrganizationRowLevelSecurity")]
     partial class AddOrganizationRowLevelSecurity
     {
         /// <inheritdoc />
