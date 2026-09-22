@@ -61,16 +61,90 @@ It explains:
 - Engineering decisions
 - Product roadmap
 
-Documentation is written before implementation.
+Documentation is written before implementation decisions are made.
 
 ---
 
 ## Current Stage
 
-Phase 0
+### Phase 1.0: Product Design & System Architecture
 
-Product Design & System Architecture
+Domora is currently in the foundational implementation stage.
 
-No implementation has begun.
+The business model and core rental workflows are being translated into a reliable domain model and infrastructure.
 
-The current objective is to fully understand the business before writing software.
+Current foundations include:
+
+- Organization-based multi-tenancy
+- Property and unit management
+- Lease management
+- Invoice and payment foundations
+- Database transactions
+- Optimistic concurrency control
+- PostgreSQL Row-Level Security
+- Organization-scoped database transactions
+- Automated infrastructure tests
+- Cross-organization isolation tests
+
+The current objective is to establish the business rules, security boundaries, data integrity, and architectural foundations before expanding into higher-level product capabilities.
+
+Implementation follows the principle:
+
+> **Mindset first, then code.**
+
+The system is built around the real workflows and decisions of property businesses rather than around technology for its own sake.
+
+---
+
+## Engineering Direction
+
+Domora is built with:
+
+- C# / .NET
+- ASP.NET Core
+- Entity Framework Core
+- PostgreSQL
+
+The architecture separates:
+
+- Domain
+- Application
+- Infrastructure
+- API
+
+Security and data integrity are treated as system properties rather than responsibilities left entirely to application code.
+
+For example, organization isolation is enforced at the PostgreSQL layer using Row-Level Security in addition to application-level organization context.
+
+---
+
+## Current Architectural Focus
+
+The current engineering focus is establishing trustworthy foundations for a multi-tenant rental platform.
+
+The system is being developed around several core invariants:
+
+- An organization can only access its own data.
+- Cross-organization writes are rejected.
+- Concurrent modifications must not silently overwrite each other.
+- Financial records must remain traceable.
+- Business state changes must follow explicit domain rules.
+- Database transactions must preserve business consistency.
+
+These foundations will support the higher-level rental workflows that follow.
+
+---
+
+## Long-Term Direction
+
+Domora aims to evolve from property management software into an operating system for property businesses.
+
+The long-term platform will connect:
+
+**Properties → Units → Tenants → Leases → Invoices → Payments → Operations → Intelligence**
+
+The goal is not simply to store property information.
+
+The goal is to help a property business understand what is happening, protect its money, coordinate its operations, and make better decisions.
+
+---
