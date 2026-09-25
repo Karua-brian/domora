@@ -1,6 +1,7 @@
-using Domora.Domain.Common.Exceptions;
+using Domora.Application.Common.Context;
 using Domora.Application.Leasing.Commands.RegisterLease;
 using Domora.Domain.Common;
+using Domora.Domain.Common.Exceptions;
 using Domora.Domain.Leasing.Enums;
 using Domora.Domain.Organizations;
 using Domora.Domain.Organizations.ValueObjects;
@@ -10,29 +11,32 @@ using Domora.Domain.Units;
 using Domora.Domain.Units.Enums;
 using Domora.Domain.Units.ValueObjects;
 using Domora.Infrastructure.Persistence;
+using Domora.Infrastructure.Persistence.Interceptors;
 using Domora.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Domora.Application.Common.Context;
 
 namespace Domora.Application.Tests.Leasing;
 
 public sealed class RegisterLeaseConcurrencyTests
 {
     private readonly DbContextOptions<DomoraDbContext> _options;
+    private readonly string _connectionString;
 
     public RegisterLeaseConcurrencyTests()
     {
-        var connectionString = Environment.GetEnvironmentVariable("DomoraTest");
+        _connectionString =
+            Environment.GetEnvironmentVariable("DomoraTest")
+            ?? throw new InvalidOperationException(
+                "DomoraTest connection string is not configured.");
 
-        if (string.IsNullOrWhiteSpace(connectionString))
-            throw new InvalidOperationException(
-                "DomoraTest connection string is not configured."
-            );
-
-        _options = new DbContextOptionsBuilder<DomoraDbContext>{}
-            .UseNpgsql(connectionString)
+        _options = new DbContextOptionsBuilder<DomoraDbContext>()
+            .UseNpgsql(_connectionString)
             .Options;
     }
+
+    // ============================================================
+    // Organization context
+    // ============================================================
 
     private sealed class TestOrganizationContext : IOrganizationContext
     {
@@ -43,46 +47,91 @@ public sealed class RegisterLeaseConcurrencyTests
 
         public Guid OrganizationId { get; }
     }
-    private async Task<Guid> CreateTestUnitAsync()
+
+    private async Task ExecuteAsOrganizationContextAsync(
+        Guid organizationId,
+        Func<DomoraDbContext, Task> action)
     {
-        await using var context = new DomoraDbContext(_options);
+        var organizationContext =
+            new TestOrganizationContext(organizationId);
 
+        var interceptor =
+            new OrganizationTransactionInterceptor(
+                organizationContext);
+
+        var options =
+            new DbContextOptionsBuilder<DomoraDbContext>()
+                .UseNpgsql(_connectionString)
+                .AddInterceptors(interceptor)
+                .Options;
+
+        await using var context =
+            new DomoraDbContext(options);
+
+        await using var transaction =
+            await context.Database.BeginTransactionAsync();
+
+        await action(context);
+
+        await transaction.CommitAsync();
+    }
+
+    // ============================================================
+    // Test data
+    // ============================================================
+
+    private async Task<(Guid UnitId, Guid OrganizationId)> CreateTestUnitAsync()
+    {
         var organization = Organization.Register(
-            OrganizationName.Create($"Concurrency Organization {Guid.NewGuid():N}")
+            OrganizationName.Create(
+                $"Concurrency Organization {Guid.NewGuid():N}")
         );
-
-        await context.Organizations.AddAsync(organization);
 
         var property = Property.Register(
             organization.Id,
-            PropertyName.Create($"Concurrency Property {Guid.NewGuid():N}")
+            PropertyName.Create(
+                $"Concurrency Property {Guid.NewGuid():N}")
         );
-
-        await context.Properties.AddAsync(property);
 
         var unit = Unit.Register(
             property.Id,
-            UnitNumber.Create($"CONCURRENCY-{Guid.NewGuid():N}"),
+            UnitNumber.Create(
+                $"CONCURRENCY-{Guid.NewGuid():N}"),
             UnitType.Bedsitter
         );
 
-        await context.Units.AddAsync(unit);
+        await ExecuteAsOrganizationContextAsync(
+            organization.Id,
+            async context =>
+            {
+                await context.Organizations.AddAsync(
+                    organization);
 
-        await context.SaveChangesAsync();
+                await context.Properties.AddAsync(
+                    property);
 
-        return unit.Id;
+                await context.Units.AddAsync(
+                    unit);
+
+                await context.SaveChangesAsync();
+            });
+
+        return (unit.Id, organization.Id);
     }
 
-    private sealed class CoordinatedUnitRepository : IUnitRepository
+    // ============================================================
+    // Concurrency coordination
+    // ============================================================
+
+    private sealed class CoordinatedUnitRepository
+        : IUnitRepository
     {
         private readonly IUnitRepository _inner;
-
         private readonly Barrier _barrier;
 
         public CoordinatedUnitRepository(
             IUnitRepository inner,
-            Barrier barrier
-        )
+            Barrier barrier)
         {
             _inner = inner;
             _barrier = barrier;
@@ -90,41 +139,49 @@ public sealed class RegisterLeaseConcurrencyTests
 
         public Task AddAsync(
             Unit unit,
-            CancellationToken cancellationToken = default
-        ){
+            CancellationToken cancellationToken = default)
+        {
             return _inner.AddAsync(
                 unit,
-                cancellationToken
-            );
+                cancellationToken);
         }
 
         public async Task<Unit?> GetByIdAsync(
             Guid id,
-            CancellationToken cancellationToken = default
-        )
+            CancellationToken cancellationToken = default)
         {
             var unit = await _inner.GetByIdAsync(
                 id,
-                cancellationToken
-            );
+                cancellationToken);
 
-            _barrier.SignalAndWait(cancellationToken);
+            // Both handlers must reach this point before either
+            // continues. This creates the intended race.
+            _barrier.SignalAndWait(
+                cancellationToken);
 
             return unit;
         }
 
         public Task UpdateAsync(
             Unit unit,
-            CancellationToken cancellationToken = default
-        )
+            CancellationToken cancellationToken = default)
         {
-            return _inner.UpdateAsync(unit, cancellationToken);
+            return _inner.UpdateAsync(
+                unit,
+                cancellationToken);
         }
     }
 
+    // ============================================================
+    // Operation result helper
+    // ============================================================
+
+    private sealed record OperationResult<T>(
+        T? Value,
+        Exception? Exception);
+
     private static async Task<OperationResult<T>> CaptureAsync<T>(
-        Task<T> operation
-    )
+        Task<T> operation)
     {
         try
         {
@@ -132,121 +189,147 @@ public sealed class RegisterLeaseConcurrencyTests
 
             return new OperationResult<T>(
                 result,
-                null
-            );
+                null);
         }
         catch (Exception exception)
         {
             return new OperationResult<T>(
                 default,
-                exception
-            );
-        }   
+                exception);
+        }
     }
 
-    private sealed record OperationResult<T>(
-        T? Value,
-        Exception? Exception
-    );
+    // ============================================================
+    // Tests
+    // ============================================================
 
     [Fact]
     public async Task Concurrent_registration_for_same_unit_should_allow_only_one_active_lease()
     {
-        Console.WriteLine(
-            $"TEST START {GetType().FullName}"
-        );
+        // --------------------------------------------------------
         // Arrange
-        var unitId = await CreateTestUnitAsync();
+        // --------------------------------------------------------
+
+        var (unitId, organizationId) =
+            await CreateTestUnitAsync();
 
         var tenantA = Guid.NewGuid();
+        var tenantB = Guid.NewGuid();
 
-        var tenantB = Guid.NewGuid();       
+        await using var contextA =
+            new DomoraDbContext(_options);
 
-        await using var contextA = new DomoraDbContext(_options);
-
-        await using var contextB = new DomoraDbContext(_options);
+        await using var contextB =
+            new DomoraDbContext(_options);
 
         var barrier = new Barrier(2);
 
-        var unitRepositoryA = new CoordinatedUnitRepository(
-            new UnitRepository(contextA),
-            barrier
-        );
+        var unitRepositoryA =
+            new CoordinatedUnitRepository(
+                new UnitRepository(contextA),
+                barrier);
 
-        var unitRepositoryB = new CoordinatedUnitRepository(
-            new UnitRepository(contextB),
-            barrier
-        );
+        var unitRepositoryB =
+            new CoordinatedUnitRepository(
+                new UnitRepository(contextB),
+                barrier);
 
-        var organizationContext = new TestOrganizationContext(Guid.NewGuid());
+        var organizationContext = new TestOrganizationContext(organizationId);
 
-        var handlerA = new RegisterLeaseHandler(
-            new LeaseRepository(contextA),
-            unitRepositoryA,
-            new UnitOfWork(contextA, organizationContext)
-        );
+        var handlerA =
+            new RegisterLeaseHandler(
+                new LeaseRepository(contextA),
+                unitRepositoryA,
+                new UnitOfWork(
+                    contextA,
+                    organizationContext));
 
-        var handlerB = new RegisterLeaseHandler(
-            new LeaseRepository(contextB),
-            unitRepositoryB,
-            new UnitOfWork(contextB, organizationContext)
-        );
+        var handlerB =
+            new RegisterLeaseHandler(
+                new LeaseRepository(contextB),
+                unitRepositoryB,
+                new UnitOfWork(
+                    contextB,
+                    organizationContext));
 
-        var commandA = new RegisterLeaseCommand(
-            unitId,
-            tenantA,
-            new Money(15000m, "KES")
-        );
+        var commandA =
+            new RegisterLeaseCommand(
+                unitId,
+                tenantA,
+                new Money(15000m, "KES"));
 
-        var commandB = new RegisterLeaseCommand(
-            unitId,
-            tenantB,
-            new Money(15000m, "KES")
-        );
+        var commandB =
+            new RegisterLeaseCommand(
+                unitId,
+                tenantB,
+                new Money(15000m, "KES"));
 
+        // --------------------------------------------------------
         // Act
-        var taskA = CaptureAsync(
-            handlerA.Handle(
-            commandA,
-            CancellationToken.None
-            )
-        );
+        // --------------------------------------------------------
 
-        var taskB = CaptureAsync(
-            handlerB.Handle(
-            commandB,
-            CancellationToken.None
-           )
-        );
+        var taskA =
+            CaptureAsync(
+                handlerA.Handle(
+                    commandA,
+                    CancellationToken.None));
 
-        var results = await Task.WhenAll(
-            taskA,
-            taskB
-        );
+        var taskB =
+            CaptureAsync(
+                handlerB.Handle(
+                    commandB,
+                    CancellationToken.None));
 
-        var successfulOperations = results.Count(x => x.Exception is null);
+        var results =
+            await Task.WhenAll(
+                taskA,
+                taskB);
 
-        var conflictFailures = results.Count(x => x.Exception is ResourceConflictException);
+        // --------------------------------------------------------
+        // Assert: exactly one registration succeeds
+        // --------------------------------------------------------
 
-        // Assert
-        Assert.Equal(1, successfulOperations);
+        var successfulOperations =
+            results.Count(
+                result => result.Exception is null);
 
-        Assert.Equal(1, conflictFailures);
+        var conflictFailures =
+            results.Count(
+                result =>
+                    result.Exception
+                    is ResourceConflictException);
 
-        await using var verificationContext = new DomoraDbContext(_options);
+        Assert.Equal(
+            1,
+            successfulOperations);
 
-        var activeLeases = await verificationContext.Leases
-            .Where(l => 
-                l.UnitId == unitId && 
-                l.Status == LeaseStatus.Active
-                )
+        Assert.Equal(
+            1,
+            conflictFailures);
+
+        // --------------------------------------------------------
+        // Assert: database state
+        // --------------------------------------------------------
+
+        await using var verificationContext =
+            new DomoraDbContext(_options);
+
+        var activeLeases =
+            await verificationContext.Leases
+                .Where(lease =>
+                    lease.UnitId == unitId &&
+                    lease.Status == LeaseStatus.Active)
                 .ToListAsync();
 
         Assert.Single(activeLeases);
 
-        var persistedUnit = await verificationContext.Units
-            .SingleAsync(U => U.Id == unitId);
+        var persistedUnit =
+            await verificationContext.Units
+                .SingleAsync(unit =>
+                    unit.Id == unitId);
 
-        Assert.Equal(OccupancyStatus.Occupied, persistedUnit.Status);   
+        Assert.Equal(
+            OccupancyStatus.Occupied,
+            persistedUnit.Status);
     }
 }

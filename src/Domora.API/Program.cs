@@ -1,5 +1,7 @@
 using Domora.API.Common;
 using Domora.API.Middleware;
+using Domora.Application.Common.Authentication;
+using Domora.Application.Common.Authorization;
 using Domora.Application.Common.Context;
 using Domora.Application.Common.Persistence;
 using Domora.Application.Finance.Commands.AllocatePayment;
@@ -16,10 +18,13 @@ using Domora.Domain.Leasing;
 using Domora.Domain.Organizations;
 using Domora.Domain.Properties;
 using Domora.Domain.Units;
+using Domora.Infrastructure.Authentication;
 using Domora.Infrastructure.Persistence;
 using Domora.Infrastructure.Persistence.Interceptors;
 using Domora.Infrastructure.Persistence.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -36,7 +41,37 @@ builder.Services
 
 builder.Services.AddHttpContextAccessor();
 
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+       options.TokenValidationParameters = new TokenValidationParameters
+       {
+         ValidateIssuer = true,
+         ValidateAudience = true,
+         ValidateLifetime = true,
+         ValidateIssuerSigningKey = true,
+
+         ValidIssuer = builder.Configuration["Authentication:Issuer"],
+         ValidAudience = builder.Configuration["Authentication:Audience"],
+
+         IssuerSigningKey = new SymmetricSecurityKey(
+            Convert.FromBase64String(
+                builder.Configuration["Authentication:SigningKey"]!
+            )
+         )
+       }; 
+    });
+
+builder.Services.AddAuthorization();
+
+builder.Services.AddScoped<IUserContext, UserContext>();
+
+builder.Services.AddScoped<IOrganizationAccess, OrganizationAccess>();
+
 builder.Services.AddScoped<IOrganizationContext, OrganizationContext>();
+
+builder.Services.AddScoped<OrganizationTransactionInterceptor>();
 
 // Application
 builder.Services.AddScoped<RegisterOrganizationHandler>();
@@ -59,6 +94,8 @@ builder.Services.AddScoped<AllocatePaymentHandler>();
 
 
 // Infrastructure
+builder.Services.AddScoped<IOrganizationMembershipRepository, OrganizationMembershipRepository>();
+
 builder.Services.AddScoped<IOrganizationRepository, OrganizationRepository>();
 
 builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
@@ -75,7 +112,8 @@ builder.Services.AddScoped<IPaymentAllocationRepository, PaymentAllocationReposi
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-builder.Services.AddScoped<OrganizationTransactionInterceptor>();
+builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+
 // Database
 builder.Services.AddDbContext<DomoraDbContext>(
     (serviceProvider, options) =>
@@ -95,6 +133,9 @@ builder.Services.AddDbContext<DomoraDbContext>(
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

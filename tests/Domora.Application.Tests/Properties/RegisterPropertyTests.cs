@@ -7,6 +7,7 @@ using Domora.Domain.Organizations.ValueObjects;
 using Domora.Domain.Properties;
 using Domora.Domain.Properties.ValueObjects;
 using Domora.Infrastructure.Persistence;
+using Domora.Infrastructure.Persistence.Interceptors;
 using Domora.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,20 +17,74 @@ public sealed class RegisterPropertyTests
 {
     private readonly DbContextOptions<DomoraDbContext> _options;
 
+    private readonly string _connectionString;
+
     public RegisterPropertyTests()
     {
-        var connectionString = Environment.GetEnvironmentVariable("DomoraTest");
-
-        if (string.IsNullOrWhiteSpace(connectionString))
-            throw new InvalidOperationException(
+        _connectionString = Environment.GetEnvironmentVariable("DomoraTest")
+        ??  throw new InvalidOperationException(
                 "DomoraTest connection string is not configured."
             );
 
         _options = new DbContextOptionsBuilder<DomoraDbContext>()
-            .UseNpgsql(connectionString)
+            .UseNpgsql(_connectionString)
             .Options;
     }
 
+    private async Task ExecuteAsOrganizationContextAsync(
+        Guid organizationId,
+        Func<DomoraDbContext, Task> action
+    )
+    {
+        var organizationContext = new TestOrganizationContext(organizationId);
+
+        var interceptor = new OrganizationTransactionInterceptor(
+            organizationContext
+        );
+
+        var options = new DbContextOptionsBuilder<DomoraDbContext>()
+            .UseNpgsql(_connectionString)
+            .AddInterceptors(interceptor)
+            .Options;
+
+        await using var context = new DomoraDbContext(options);
+
+        await using var transaction =
+            await context.Database.BeginTransactionAsync();
+
+        await action(context);
+
+        await transaction.CommitAsync();
+    }
+    private async Task<T> ExecuteAsOrganizationContextAsync<T>(
+        Guid organizationId,
+        Func<DomoraDbContext, Task<T>> action)
+    {
+        var organizationContext =
+            new TestOrganizationContext(organizationId);
+
+        var interceptor =
+            new OrganizationTransactionInterceptor(
+                organizationContext);
+
+        var options =
+            new DbContextOptionsBuilder<DomoraDbContext>()
+                .UseNpgsql(_connectionString)
+                .AddInterceptors(interceptor)
+                .Options;
+
+        await using var context =
+            new DomoraDbContext(options);
+
+        await using var transaction =
+            await context.Database.BeginTransactionAsync();
+
+        var result = await action(context);
+
+        await transaction.CommitAsync();
+
+        return result;
+    }
     private sealed class TestOrganizationContext : IOrganizationContext
     {
         public Guid OrganizationId { get; }
@@ -44,24 +99,19 @@ public sealed class RegisterPropertyTests
     public async Task Register_property_should_use_organization_from_context()
     {
         // Arrange
-        await using var context = new DomoraDbContext(_options);
-
         var organization = Organization.Register(
             OrganizationName.Create(
                 $"Property Test Org {Guid.NewGuid():N}"
             )
         );
 
-        await context.Organizations.AddAsync(organization);
-        await context.SaveChangesAsync();
-
-        // Use the actual persisted organization Id
-        var organizationContext = new TestOrganizationContext(organization.Id);
-
-        var handler = new RegisterPropertyHandler(
-            new PropertyRepository(context),
-            organizationContext,
-            new UnitOfWork(context, organizationContext)
+        await ExecuteAsOrganizationContextAsync(
+            organization.Id,
+            async (ctx) =>
+            {
+                await ctx.Organizations.AddAsync(organization);
+                await ctx.SaveChangesAsync();
+            }
         );
 
         var command = new RegisterPropertyCommand(
@@ -69,9 +119,29 @@ public sealed class RegisterPropertyTests
         );
 
         // Act
-        var response = await handler.Handle(
-            command,
-            CancellationToken.None
+        var response = await ExecuteAsOrganizationContextAsync(
+            organization.Id,
+            async (ctx) =>
+            {
+                var propertyRepository =
+                    new PropertyRepository(ctx);
+
+                var unitOfWork = new UnitOfWork(
+                    ctx,
+                    new TestOrganizationContext(organization.Id)
+                );
+
+                var handler = new RegisterPropertyHandler(
+                    propertyRepository,
+                    new TestOrganizationContext(organization.Id),
+                    unitOfWork
+                );
+
+                return await handler.Handle(
+                    command,
+                    CancellationToken.None
+                );
+            }
         );
 
         // Assert
@@ -80,11 +150,16 @@ public sealed class RegisterPropertyTests
             response.OrganizationId
         );
 
-        await using var verificationContext = new DomoraDbContext(_options);
-
-        var persistedProperty = await verificationContext.Properties
-            .SingleAsync(p => p.Id == response.Id);
-
+        // Verify through the same organization boundary
+        var persistedProperty =
+            await ExecuteAsOrganizationContextAsync(
+                organization.Id,
+                async ctx =>
+                {
+                    return await ctx.Properties
+                        .SingleAsync(p => p.Id == response.Id);
+                }
+        );
         Assert.Equal(
             organization.Id,
             persistedProperty.OrganizationId

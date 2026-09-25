@@ -3,6 +3,7 @@ using Domora.Domain.Leasing;
 using Domora.Domain.Organizations;
 using Domora.Domain.Properties;
 using Domora.Domain.Units;
+using Domora.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace Domora.Infrastructure.Persistence;
@@ -13,6 +14,10 @@ public sealed class DomoraDbContext : DbContext
     {
     }
 
+    public DbSet<User> Users => Set<User>();
+
+    public DbSet<OrganizationMembership> OrganizationMemberships => Set<OrganizationMembership>();
+    
     public DbSet<Organization> Organizations => Set<Organization>();
 
     public DbSet<Property> Properties => Set<Property>();

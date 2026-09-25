@@ -7,7 +7,9 @@
   </Folder>
 
   <Folder Name="/tests/">
+    <Project Path="tests/Domora.Domain.Tests/Domora.Domain.Tests.csproj" />
     <Project Path="tests/Domora.Infrastructure.Tests/Domora.Infrastructure.Tests.csproj" />
+    <Project Path="tests/Domora.API.Tests/Domora.API.Tests.csproj" />
     <Project Path="tests/Domora.Application.Tests/Domora.Application.Tests.csproj" />
   </Folder>
 

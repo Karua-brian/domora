@@ -13,6 +13,7 @@ using Domora.Domain.Units;
 using Domora.Domain.Units.Enums;
 using Domora.Domain.Units.ValueObjects;
 using Domora.Infrastructure.Persistence;
+using Domora.Infrastructure.Persistence.Interceptors;
 using Domora.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,18 +23,44 @@ public sealed class EndLeaseIntegrationTests
 {
     private readonly DbContextOptions<DomoraDbContext> _options;
 
+    private readonly string _connectionString;
+
     public EndLeaseIntegrationTests()
     {
-        var connectionString = Environment.GetEnvironmentVariable("DomoraTest");
-
-        if (string.IsNullOrWhiteSpace(connectionString))
-            throw new InvalidOperationException(
+       _connectionString = Environment.GetEnvironmentVariable("DomoraTest")
+        ??  throw new InvalidOperationException(
                 "DomoraTest connection string is not configured."
             );
 
         _options = new DbContextOptionsBuilder<DomoraDbContext>{}
-            .UseNpgsql(connectionString)
+            .UseNpgsql(_connectionString)
             .Options;
+    }
+
+    private async Task ExecuteAsOrganizationContextAsync(
+        Guid organizationId,
+        Func<DomoraDbContext, Task> action
+    )
+    {
+        var organizationContext = new TestOrganizationContext(organizationId);
+
+        var interceptor = new OrganizationTransactionInterceptor(
+            organizationContext
+        );
+
+        var options = new DbContextOptionsBuilder<DomoraDbContext>()
+            .UseNpgsql(_connectionString)
+            .AddInterceptors(interceptor)
+            .Options;
+
+        await using var context = new DomoraDbContext(options);
+
+        await using var transaction =
+            await context.Database.BeginTransactionAsync();
+
+        await action(context);
+
+        await transaction.CommitAsync();
     }
 
     private sealed class TestOrganizationContext : IOrganizationContext
@@ -53,13 +80,11 @@ public sealed class EndLeaseIntegrationTests
         var organization = Organization.Register(
             OrganizationName.Create($"EndLease Org {Guid.NewGuid():N}")
         );
-        await context.Organizations.AddAsync(organization);
 
         var property = Property.Register(
             organization.Id,
             PropertyName.Create($"EndLease Prop {Guid.NewGuid():N}")
         ); 
-        await context.Properties.AddAsync(property);
 
         var unit = Unit.Register(
             property.Id,
@@ -67,7 +92,6 @@ public sealed class EndLeaseIntegrationTests
             UnitType.Bedsitter
         );
         unit.Occupy();
-        await context.Units.AddAsync(unit);
 
         var lease = Lease.Register(
             unit.Id,
@@ -75,9 +99,17 @@ public sealed class EndLeaseIntegrationTests
             new Money(15000m, "KES")
         );
 
-        await context.Leases.AddAsync(lease);
-
-        await context.SaveChangesAsync();
+        await ExecuteAsOrganizationContextAsync(
+            organization.Id,
+            async ctx =>
+            {
+                await ctx.Organizations.AddAsync(organization);
+                await ctx.Properties.AddAsync(property);
+                await ctx.Units.AddAsync(unit);
+                await ctx.Leases.AddAsync(lease);
+                await ctx.SaveChangesAsync();
+            }
+        );
 
         return (unit.Id, lease.Id);
     }
