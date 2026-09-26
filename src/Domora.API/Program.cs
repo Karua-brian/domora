@@ -94,6 +94,8 @@ builder.Services.AddScoped<AllocatePaymentHandler>();
 
 
 // Infrastructure
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
 builder.Services.AddScoped<IOrganizationMembershipRepository, OrganizationMembershipRepository>();
 
 builder.Services.AddScoped<IOrganizationRepository, OrganizationRepository>();
