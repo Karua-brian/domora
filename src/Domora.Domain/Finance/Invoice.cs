@@ -20,7 +20,7 @@ public class Invoice
 
     private Invoice()
     {
-        Amount = null;
+        Amount = null!;
     }
 
     private Invoice(

@@ -25,7 +25,7 @@ public class Lease
 
     private Lease()
     {
-        MonthlyRent = null;
+        MonthlyRent = null!;
     }
 
     private Lease(

@@ -46,7 +46,7 @@ public sealed class ExceptionHandlingMiddlewareTests
         var middleware = new ExceptionHandlingMiddleware(
             _ => throw new ResourceConflictException(
                 "Unit is already occupied.",
-                null
+                null!
             ),
             new TestLogger<ExceptionHandlingMiddleware>()
         );

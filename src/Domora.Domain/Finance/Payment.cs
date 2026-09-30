@@ -17,8 +17,8 @@ public class Payment
 
     private Payment()
     {
-        TotalAmount = null;
-        Reference = null;
+        TotalAmount = null!;
+        Reference = null!;
     }
 
     private Payment(
@@ -69,7 +69,7 @@ public class Payment
     {
         var remaining = GetRemainingBalance(allocatedToPaymentSoFar);
 
-        if (remaining.Amount < allocateAmount.Amount);
+        if (remaining.Amount < allocateAmount.Amount)
             throw new DomainValidationException(
                 "Payment has insufficient remaining balance to satisfy this allocation request."
             );

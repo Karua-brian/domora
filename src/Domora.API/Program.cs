@@ -24,11 +24,11 @@ using Domora.Infrastructure.Persistence.Interceptors;
 using Domora.Infrastructure.Persistence.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Options;
 using System.Text.Json.Serialization;
 
-var builder = WebApplication.CreateBuilder(args);
 
+var builder = WebApplication.CreateBuilder(args);
 
 // Controllers
 builder.Services
@@ -39,38 +39,36 @@ builder.Services
             new JsonStringEnumConverter()); 
     });
 
+// Http Context
 builder.Services.AddHttpContextAccessor();
 
+// Add JWT Access Token Generator
+builder.Services.AddScoped<IAccessTokenGenerator, JwtAccessTokenGenerator>();
+
+// Configure JWT options
+builder.Services.Configure<JwtOptions>(
+    builder.Configuration.GetSection(JwtOptions.SectionName)
+);
+
+// Get JWT options for use in authentication configuration
+builder.Services.AddSingleton<IConfigureOptions<JwtBearerOptions>, ConfigureJwtBearerOptions>();
+
+// Authentication
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-       options.TokenValidationParameters = new TokenValidationParameters
-       {
-         ValidateIssuer = true,
-         ValidateAudience = true,
-         ValidateLifetime = true,
-         ValidateIssuerSigningKey = true,
+    .AddJwtBearer();
 
-         ValidIssuer = builder.Configuration["Authentication:Issuer"],
-         ValidAudience = builder.Configuration["Authentication:Audience"],
-
-         IssuerSigningKey = new SymmetricSecurityKey(
-            Convert.FromBase64String(
-                builder.Configuration["Authentication:SigningKey"]!
-            )
-         )
-       }; 
-    });
-
+// Authorization
 builder.Services.AddAuthorization();
 
+// Application Context
 builder.Services.AddScoped<IUserContext, UserContext>();
-
-builder.Services.AddScoped<IOrganizationAccess, OrganizationAccess>();
 
 builder.Services.AddScoped<IOrganizationContext, OrganizationContext>();
 
+builder.Services.AddScoped<IOrganizationAccess, OrganizationAccess>();
+
+// Interceptors
 builder.Services.AddScoped<OrganizationTransactionInterceptor>();
 
 // Application
@@ -96,6 +94,8 @@ builder.Services.AddScoped<AllocatePaymentHandler>();
 // Infrastructure
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
+builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+
 builder.Services.AddScoped<IOrganizationMembershipRepository, OrganizationMembershipRepository>();
 
 builder.Services.AddScoped<IOrganizationRepository, OrganizationRepository>();
@@ -113,8 +113,6 @@ builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IPaymentAllocationRepository, PaymentAllocationRepository>();
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 
 // Database
 builder.Services.AddDbContext<DomoraDbContext>(
@@ -142,3 +140,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// Make the Program class public for testing purposes
+public partial class Program { }

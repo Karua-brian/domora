@@ -16,7 +16,7 @@ public class PaymentAllocation
 
     private PaymentAllocation()
     {
-        AllocateAmount = null;
+        AllocateAmount = null!;
     }
 
     private PaymentAllocation(
