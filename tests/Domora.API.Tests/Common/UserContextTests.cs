@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Domora.API.Common;
 using Microsoft.AspNetCore.Http;
@@ -19,7 +20,7 @@ public sealed class UserContextTests
                 new []
                 {
                     new Claim(
-                        ClaimTypes.NameIdentifier,
+                        JwtRegisteredClaimNames.Sub,
                         userId.ToString()
                     )
                 },

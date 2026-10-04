@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Domora.Application.Common.Context;
 
@@ -20,7 +21,7 @@ public sealed class UserContext : IUserContext
         {
             var value = _httpContextAccessor.HttpContext?
                 .User
-                .FindFirstValue(ClaimTypes.NameIdentifier);
+                .FindFirstValue(JwtRegisteredClaimNames.Sub);
 
             if (!Guid.TryParse(value, out var userId))
             {

@@ -41,7 +41,7 @@ public sealed class JwtAccessTokenGeneratorTests
         var jwt = handler.ReadJwtToken(token);
 
         var userIdClaim = jwt.Claims.Single(
-            claim => claim.Type == ClaimTypes.NameIdentifier
+            claim => claim.Type == JwtRegisteredClaimNames.Sub
         );
 
         Assert.Equal(

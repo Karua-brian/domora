@@ -27,16 +27,8 @@ public sealed class AuthenticationService : IAuthenticationService
         CancellationToken cancellationToken
     )
     {
-        if (string.IsNullOrWhiteSpace(email))
-            return null;
-
-        if (string.IsNullOrWhiteSpace(password))
-            return null;
-
-        var normalizedEmail = email.Trim().ToLowerInvariant();
-
         var user = await _users.FindByEmailAsync(
-            normalizedEmail,
+            email,
             cancellationToken
         );
 
@@ -45,7 +37,7 @@ public sealed class AuthenticationService : IAuthenticationService
 
         if (!_passwordHasher.Verify(
                 password,
-                user.PasswordHash
+                user.PasswordHash.Value
         ))
         {
             return null;

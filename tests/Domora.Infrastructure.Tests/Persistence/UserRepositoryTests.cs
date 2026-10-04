@@ -1,4 +1,5 @@
 using Domora.Domain.Users;
+using Domora.Domain.Users.ValueObjects;
 using Domora.Infrastructure.Persistence;
 using Domora.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -35,8 +36,8 @@ public sealed class UserRepositoryTests
         var email = $"user-{Guid.NewGuid():N}@example.com";
 
         var user = User.Register(
-            email,
-            "hashed-password"
+            UserEmail.Create(email),
+            UserPassword.Create("Hashed-password")
         );
 
         await using (var context = CreateContext())
@@ -58,7 +59,7 @@ public sealed class UserRepositoryTests
         // Assert
         Assert.NotNull(result);
         Assert.Equal(user.Id, result.Id);
-        Assert.Equal(email, result.Email);
+        Assert.Equal(email, result.Email.Value);
     }
     [Fact]
     public async Task Find_by_email_should_return_null_when_user_does_not_exist()

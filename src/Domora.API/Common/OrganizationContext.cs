@@ -5,6 +5,7 @@ namespace Domora.API.Common;
 
 public sealed class OrganizationContext : IOrganizationContext
 {
+    public const string ItemKey = "Domora.OrganizationContext.OrganizationId";
     private readonly IHttpContextAccessor _httpContextAccessor;
 
     public OrganizationContext(
@@ -18,11 +19,24 @@ public sealed class OrganizationContext : IOrganizationContext
     {
         get
         {
-            var value = _httpContextAccessor.HttpContext?
-                .User
-                .FindFirstValue("organization_id");
+            var httpContext = _httpContextAccessor.HttpContext;
 
-            if(!Guid.TryParse(value, out var organizationId))
+            if(httpContext is null)
+            {
+                throw new InvalidOperationException(
+                    "Organization context is unavailable."
+                );
+            }
+
+            if(!httpContext.Items.TryGetValue(ItemKey, out var value))
+            {
+                throw new InvalidOperationException(
+                    "Organization context is unavailable."
+                );
+            }   
+
+            if (value is not Guid organizationId || 
+                organizationId == Guid.Empty)
             {
                 throw new InvalidOperationException(
                     "Organization context is unavailable."

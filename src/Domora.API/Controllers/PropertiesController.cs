@@ -1,3 +1,4 @@
+using Domora.API.Common.Authorization;
 using Domora.API.Propertys;
 using Domora.Application.Properties.Commands.RegisterProperty;
 using Domora.Application.Properties.Queries.GetProperty;
@@ -22,6 +23,7 @@ public sealed class PropertyController : ControllerBase
         _getPropertyHandler = getPropertyHandler;
     }
 
+    [RequireOrganizationAccess]
     [HttpPost]
     public async Task<IActionResult> Register(
         RegisterPropertyRequest request, 

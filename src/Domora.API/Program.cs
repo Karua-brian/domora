@@ -1,4 +1,5 @@
 using Domora.API.Common;
+using Domora.API.Common.Authorization;
 using Domora.API.Middleware;
 using Domora.Application.Common.Authentication;
 using Domora.Application.Common.Authorization;
@@ -13,6 +14,7 @@ using Domora.Application.Organizations.Commands.RegisterOrganization;
 using Domora.Application.Properties.Commands.RegisterProperty;
 using Domora.Application.Properties.Queries.GetProperty;
 using Domora.Application.Units.Commands.RegisterUnit;
+using Domora.Application.Users.Commands.RegisterUser;
 using Domora.Domain.Finance;
 using Domora.Domain.Leasing;
 using Domora.Domain.Organizations;
@@ -23,16 +25,29 @@ using Domora.Infrastructure.Persistence;
 using Domora.Infrastructure.Persistence.Interceptors;
 using Domora.Infrastructure.Persistence.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text.Json.Serialization;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
+JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear(); // Disable default claim mapping to avoid claim type transformations
+
 // Controllers
 builder.Services
-    .AddControllers()
+    .AddControllers(options =>
+    {
+        var policy = new AuthorizationPolicyBuilder()
+            .RequireAuthenticatedUser()
+            .Build();
+
+        // Apply the authorization policy globally to all controllers
+        options.Filters.Add(new AuthorizeFilter(policy));
+    })
     .AddJsonOptions(options =>
     {
        options.JsonSerializerOptions.Converters.Add(
@@ -62,6 +77,8 @@ builder.Services
 builder.Services.AddAuthorization();
 
 // Application Context
+builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+
 builder.Services.AddScoped<IUserContext, UserContext>();
 
 builder.Services.AddScoped<IOrganizationContext, OrganizationContext>();
@@ -72,6 +89,8 @@ builder.Services.AddScoped<IOrganizationAccess, OrganizationAccess>();
 builder.Services.AddScoped<OrganizationTransactionInterceptor>();
 
 // Application
+builder.Services.AddScoped<RegisterUserHandler>();
+
 builder.Services.AddScoped<RegisterOrganizationHandler>();
 
 builder.Services.AddScoped<RegisterPropertyHandler>();
@@ -135,7 +154,10 @@ var app = builder.Build();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseAuthentication();
+
 app.UseAuthorization();
+
+app.UseMiddleware<OrganizationAuthorizationMiddleware>();
 
 app.MapControllers();
 

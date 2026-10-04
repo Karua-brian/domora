@@ -8,6 +8,10 @@ public sealed class PasswordHasher : IPasswordHasher
 {
     private readonly PasswordHasher<User> _hasher = new();
 
+    public string RecievedPassword { get; private set; } = string.Empty;
+
+
+
     public string Hash(string password)
     {
         if (string.IsNullOrWhiteSpace(password))
@@ -15,7 +19,8 @@ public sealed class PasswordHasher : IPasswordHasher
                 "Password is required.",
                 nameof(password)
             );
-        
+        RecievedPassword = password;
+
         return _hasher.HashPassword(
             null!,
             password

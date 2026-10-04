@@ -40,9 +40,10 @@ public sealed class UnitOfWork : IUnitOfWork
                 );
         }
         catch (DbUpdateException ex)
-            when (ex.InnerException is PostgresException postgresException 
+            when (
+                ex.InnerException is PostgresException postgresException 
                 && postgresException.SqlState == PostgresErrorCodes.UniqueViolation
-                && postgresException.ConstraintName == "IX_Leases_UnitId" 
+                && postgresException.ConstraintName == "IX_Leases_UnitId"
                 )
             {
 
@@ -51,6 +52,33 @@ public sealed class UnitOfWork : IUnitOfWork
                     ex
                 );    
             }
+        catch (DbUpdateException ex)
+            when (
+                ex.InnerException is PostgresException postgresException 
+                && postgresException.SqlState == PostgresErrorCodes.UniqueViolation
+                && postgresException.ConstraintName == "IX_Users_Email"
+                )
+            {
+
+                throw new ResourceConflictException(
+                    "A user with this email already exists.",
+                    ex
+                );
+            }
+        catch (DbUpdateException ex)
+            when (
+                ex.InnerException is PostgresException postgresException 
+                && postgresException.SqlState == PostgresErrorCodes.UniqueViolation
+                && postgresException.ConstraintName == "IX_Organizations_Name"
+                )
+            {
+
+                throw new ResourceConflictException(
+                    "An organization with this name already exists.",
+                    ex
+                );
+            }
+            
     }   
 
     public async Task<ITransaction> BeginTransactionAsync(

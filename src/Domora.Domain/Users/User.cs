@@ -1,17 +1,20 @@
+using Domora.Domain.Common.Exceptions;
+using Domora.Domain.Users.ValueObjects;
+
 namespace Domora.Domain.Users;
 
 public sealed class User
 {
     public Guid Id { get; }
 
-    public string Email { get; }
+    public UserEmail Email { get; private set; }
 
-    public string PasswordHash { get; }
+    public UserPassword PasswordHash { get; private set; }
 
     private User(
-        Guid id,
-        string email,
-        string passwordHash
+        Guid id, 
+        UserEmail email, 
+        UserPassword passwordHash
     )
     {
         Id = id;
@@ -20,26 +23,24 @@ public sealed class User
     }
 
     public static User Register(
-        string email,
-        string passwordHash
+        UserEmail email, 
+        UserPassword passwordHash
     )
     {
-        if (string.IsNullOrWhiteSpace(email))
-            throw new ArgumentException(
-                "Email is required.", 
-                nameof(email)
-            );
-
-        if (string.IsNullOrWhiteSpace(passwordHash))
-            throw new ArgumentException(
-                "Password hash is required.",
-                nameof(passwordHash)
-            );
-
         return new User(
-            Guid.NewGuid(),
-            email.Trim().ToLowerInvariant(),
+            Guid.NewGuid(), 
+            email, 
             passwordHash
         );
     }
+
+    // public void UpdateEmail(UserEmail email)
+    // {
+    //     Email = email;
+    // }
+
+    // public void UpdatePassword(UserPassword password)
+    // {
+    //     Password = password;
+    // }
 }

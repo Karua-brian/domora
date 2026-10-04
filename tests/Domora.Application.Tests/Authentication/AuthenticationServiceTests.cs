@@ -1,6 +1,7 @@
 using Domora.Application.Common.Authentication;
 using Domora.Application.Common.Persistence;
 using Domora.Domain.Users;
+using Domora.Domain.Users.ValueObjects;
 
 namespace Domora.Application.Tests.Authentication;
 
@@ -10,6 +11,13 @@ public sealed class AuthenticationServiceTests
     {
         public User? User { get; init; }
 
+        public Task AddAsync(
+            User user,
+            CancellationToken cancellationToken
+        )
+        {
+            return Task.CompletedTask;
+        }
         public Task<User?> FindByEmailAsync(
             string email,
             CancellationToken cancellationToken
@@ -59,11 +67,11 @@ public sealed class AuthenticationServiceTests
     {
         // Arrange
         var email = "user@example.com";
-        var password = "correct-password";
+        var password = "Correct-password";
 
         var user = User.Register(
-            email,
-            "hashed-password"
+            UserEmail.Create(email),
+            UserPassword.Create("Hashed-password")
         );
 
         var users = new FakeUserRepository
@@ -116,8 +124,8 @@ public sealed class AuthenticationServiceTests
     {
         // Arrange
         var user = User.Register(
-            "user@example.com",
-            "hashed_password"
+            UserEmail.Create("user@email.com"),
+               UserPassword.Create("Hashed-password")
         );
 
         var users = new FakeUserRepository
@@ -141,7 +149,7 @@ public sealed class AuthenticationServiceTests
         // Act
         var result = await authentication.AuthenticateAsync(
             "user@example.com",
-            "wrong-password",
+            "Wrong-password",
             CancellationToken.None
         );
 
@@ -176,7 +184,7 @@ public sealed class AuthenticationServiceTests
         // Act
         var result = await authentication.AuthenticateAsync(
             "unkown@example.com",
-            "passwordHasher",
+            "PasswordHasher",
             CancellationToken.None
         );
 

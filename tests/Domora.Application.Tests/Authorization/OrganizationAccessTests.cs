@@ -49,8 +49,16 @@ public sealed class OrganizationAccessTests
 
         // Assert
         Assert.True(result);
-        Assert.Equal(userId, memberships.ReceivedUserId);
-        Assert.Equal(organizationId, memberships.ReceivedOrganizationId);
+
+        Assert.Equal(
+            userId, 
+            memberships.ReceivedUserId
+        );
+
+        Assert.Equal(
+            organizationId, 
+            memberships.ReceivedOrganizationId
+        );
     }
 
     [Fact]
@@ -76,7 +84,15 @@ public sealed class OrganizationAccessTests
 
         // Assert
         Assert.False(result);
-        Assert.Equal(userId, memberships.ReceivedUserId);
-        Assert.Equal(organizationId, memberships.ReceivedOrganizationId);
+
+        Assert.Equal(
+            userId, 
+            memberships.ReceivedUserId
+        );
+        
+        Assert.Equal(
+            organizationId, 
+            memberships.ReceivedOrganizationId
+        );
     }
 }

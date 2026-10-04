@@ -40,8 +40,8 @@ public sealed class JwtAccessTokenGenerator : IAccessTokenGenerator
         var claims = new[]
         {
             new Claim(
-                ClaimTypes.NameIdentifier,
-                userId.ToString()
+                JwtRegisteredClaimNames.Sub,
+                userId.ToString()   
             )
         };
 

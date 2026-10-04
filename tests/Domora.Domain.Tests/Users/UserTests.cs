@@ -1,4 +1,6 @@
+using Domora.Domain.Common.Exceptions;
 using Domora.Domain.Users;
+using Domora.Domain.Users.ValueObjects;
 
 namespace Domora.Domain.Tests.Users;
 
@@ -8,25 +10,25 @@ public sealed class UserTests
     public void Register_should_create_user_with_normalized_email()
     {
         // Arrange
-        var email = "  TEST@EXAMPLE.COM  ";
-        var passwordHash = "hashed-password";
+        var email = "  TEST@EXAMPLE.COM";
+        var passwordHash = "Hashed-password";
 
         // Act
         var user = User.Register(
-            email,
-            passwordHash
+            UserEmail.Create(email),
+            UserPassword.Create(passwordHash)
         );
 
         // Assert
         Assert.NotEqual(Guid.Empty, user.Id);
         Assert.Equal(
             "test@example.com",
-            user.Email
+            user.Email.Value
         );
 
         Assert.Equal(
             passwordHash,
-            user.PasswordHash
+            user.PasswordHash.Value
         );
     }
 
@@ -34,19 +36,19 @@ public sealed class UserTests
     public void Register_should_reject_missing_email()
     {
         // Arrange
-        var passwordHash = "hashed-password";
+        var passwordHash = "Hashed-password";
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(
+        var exception = Assert.Throws<DomainValidationException>(
             () => User.Register(
-                "  ",
-                passwordHash
+               UserEmail.Create(" "),
+               UserPassword.Create(passwordHash)
             )
         );
 
         Assert.Equal(
-            "email",
-            exception.ParamName
+            "User email is required.",
+            exception.Message
         );
     }
 
@@ -57,16 +59,16 @@ public sealed class UserTests
         var email = "user@example.com";
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentException>(
+        var exception = Assert.Throws<DomainValidationException>(
             () => User.Register(
-                email,
-                " "
+                UserEmail.Create(email),
+               UserPassword.Create(" ")
             )
         );
 
         Assert.Equal(
-            "passwordHash",
-            exception.ParamName
+            "User password is required.",
+            exception.Message
         );
     }
 }
