@@ -143,6 +143,12 @@ public sealed class EndLeaseIntegrationTests
             return lease;
         }
 
+        public Task<bool> HasActiveLeaseAsync(
+            Guid unitId, 
+            CancellationToken cancellationToken = default
+        ) 
+            => _inner.HasActiveLeaseAsync(unitId, cancellationToken);
+
         public Task AddAsync(
             Lease lease, 
             CancellationToken token) 

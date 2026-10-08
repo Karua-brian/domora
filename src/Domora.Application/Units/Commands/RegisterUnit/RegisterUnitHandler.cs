@@ -24,7 +24,9 @@ public sealed class RegisterUnitHandler
         CancellationToken cancellationToken
         )
     {
-        var unitNumber = UnitNumber.Create(command.Number);
+        var unitNumber = UnitNumber.Create(
+            command.Number
+        );
 
         var unit = Unit.Register(
             command.PropertyId, 
@@ -32,7 +34,10 @@ public sealed class RegisterUnitHandler
             command.Type
         );
 
-        await _unitRepository.AddAsync(unit, cancellationToken);
+        await _unitRepository.AddAsync(
+            unit, 
+            cancellationToken
+        );
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -43,6 +48,6 @@ public sealed class RegisterUnitHandler
             unit.Type, 
             unit.Status,
             unit.Version
-            );
+        );
     }
 }

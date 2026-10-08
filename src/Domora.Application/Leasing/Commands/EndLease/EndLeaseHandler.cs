@@ -1,6 +1,8 @@
 using Domora.Application.Common.Exceptions;
 using Domora.Application.Common.Persistence;
+using Domora.Domain.Common.Exceptions;
 using Domora.Domain.Leasing;
+using Domora.Domain.Leasing.Enums;
 using Domora.Domain.Units;
 
 namespace Domora.Application.Leasing.Commands.EndLease;
@@ -37,6 +39,11 @@ public sealed class EndLeaseHandler
         if (lease is null)
             throw new NotFoundException(
                 "Lease not found."
+            );
+
+        if (lease.Status == LeaseStatus.Ended)
+            throw new ResourceConflictException(
+                "Lease has already ended."
             );
 
         var unit = await _unitRepository.GetByIdAsync(

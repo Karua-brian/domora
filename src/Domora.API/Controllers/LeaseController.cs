@@ -1,3 +1,4 @@
+using Domora.API.Common.Authorization;
 using Domora.API.Leases;
 using Domora.Application.Leasing.Commands.EndLease;
 using Domora.Application.Leasing.Commands.RegisterLease;
@@ -24,6 +25,7 @@ public sealed class LeaseController : ControllerBase
         _endLeaseHandler = endLeaseHandler;
     }
 
+    [RequireOrganizationAccess]
     [HttpPost]      
     public async Task<IActionResult> Register(
         RegisterLeaseRequest request,

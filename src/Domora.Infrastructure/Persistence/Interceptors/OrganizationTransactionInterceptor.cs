@@ -26,9 +26,9 @@ public sealed class OrganizationTransactionInterceptor : DbTransactionIntercepto
         var organizationId = _organizationContext.OrganizationId;
 
         if (organizationId == Guid.Empty)
-            throw new InvalidOperationException(
-                "Organization context is unavailable."
-            );
+        {
+            return result;
+        }
 
         if (connection is not NpgsqlConnection npgsqlConnection)
             throw new InvalidOperationException(

@@ -1,4 +1,5 @@
 using Domora.Domain.Leasing;
+using Domora.Domain.Leasing.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Domora.Infrastructure.Persistence.Repositories;
@@ -31,10 +32,25 @@ public sealed class LeaseRepository : ILeaseRepository
                 );
     }
 
+    public async Task<bool> HasActiveLeaseAsync(
+        Guid unitId,
+        CancellationToken cancellationToken
+    )
+    {
+        return await _dbContext.Leases
+            .AsNoTracking()
+            .AnyAsync(
+                l => l.UnitId == unitId &&
+                l.Status == LeaseStatus.Active
+            );
+
+    }
+
     public async Task UpdateAsync(Lease lease, 
     CancellationToken cancellationToken)
     {
         _dbContext.Leases.Update(lease);
+        await Task.CompletedTask;
 
     }
 }

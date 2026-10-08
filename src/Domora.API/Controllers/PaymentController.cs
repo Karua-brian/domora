@@ -1,3 +1,4 @@
+using Domora.API.Common.Authorization;
 using Domora.API.Finances.Payments;
 using Domora.Application.Finance.Commands.ReceivePayment;
 using Domora.Domain.Common;
@@ -19,6 +20,7 @@ public sealed class PaymentController : ControllerBase
         _handler = handler;
     }
 
+    [RequireOrganizationAccess]
     [HttpPost]
     public async Task<IActionResult> Receive(
         ReceivePaymentRequest request,
@@ -35,7 +37,9 @@ public sealed class PaymentController : ControllerBase
             cancellationToken
         );
 
-        return Created($"api/payments/{response.Id}", response);
+        return Created($"api/payments/{response.Id}", 
+            response
+        );
     }
 }
 

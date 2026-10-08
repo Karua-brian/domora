@@ -3,28 +3,32 @@ using Domora.Domain.Users.ValueObjects;
 using Domora.Infrastructure.Persistence;
 using Domora.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Domora.Infrastructure.Tests.Persistence;
 
 public sealed class UserRepositoryTests
 {
-    private readonly string _connectionString;
+    private readonly DbContextOptions<DomoraDbContext> _options;
 
     public UserRepositoryTests()
     {
-        _connectionString = 
-            Environment.GetEnvironmentVariable("DomoraTest")
-            ?? throw new InvalidOperationException(
-                "DomoraTest connection is not configured"
-            );
+       var connectionString = 
+       Environment.GetEnvironmentVariable("DomoraTest") 
+        ?? throw new InvalidOperationException(
+            "DomoraTest connection is not configured"
+        );
+
+    _options = new DbContextOptionsBuilder<DomoraDbContext>()
+        .UseNpgsql(connectionString)
+        .Options;
     }
 
     private DomoraDbContext CreateContext()
     {
-        var options = 
-            new DbContextOptionsBuilder<DomoraDbContext>()
-                .UseNpgsql(_connectionString)
-                .Options;
+        var options  = new DbContextOptionsBuilder<DomoraDbContext>()
+            .UseInMemoryDatabase("DomoraUserRepositoryTestDb")
+            .Options;
 
         return new DomoraDbContext(options);
     }

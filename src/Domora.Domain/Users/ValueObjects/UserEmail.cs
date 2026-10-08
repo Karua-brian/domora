@@ -61,4 +61,27 @@ public sealed class UserEmail
 
         return new UserEmail(value);
     }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is not UserEmail other) return false;
+        return Value == other.Value;
+    }
+
+    public override int GetHashCode()
+    {
+        return Value.GetHashCode();
+    }
+
+    public static bool operator ==(UserEmail? left, UserEmail? right)
+    {
+        if (left is null && right is null) return true;
+        if (left is null || right is null) return false;
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(UserEmail? left, UserEmail? right)
+    {
+        return !(left == right);
+    }
 }

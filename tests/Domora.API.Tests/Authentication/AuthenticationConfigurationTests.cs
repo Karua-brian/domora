@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc.Testing;
-using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 using System.Net;
 using System.Net.Http.Json;
@@ -7,9 +6,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Domora.Application.Common.Authentication;
-using Microsoft.Extensions.Options;
-using Domora.Infrastructure.Authentication;
-
 
 namespace Domora.API.Tests.Authentication;
 
@@ -37,7 +33,6 @@ public sealed class AuthenticationConfigurationTests
                         ["Jwt:Issuer"] = TestJwtConfiguration.Issuer,
                         ["Jwt:Audience"] = TestJwtConfiguration.Audience,
                         ["Jwt:SigningKey"] = TestJwtConfiguration.SigningKey,
-                        ["Jwt:SigningKeyId"] = TestJwtConfiguration.SigningKeyId,
                         ["Jwt:ExpirationMinutes"] = TestJwtConfiguration.ExpirationMinutes.ToString()
                     };
 

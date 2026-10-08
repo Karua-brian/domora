@@ -11,16 +11,20 @@ public sealed class Money : IEquatable<Money>
     public Money(decimal amount, string currency)
     {
         if (amount < 0)
-            throw new DomainValidationException("Amount cannot be negative.");
+            throw new DomainValidationException(
+                "Amount cannot be negative."
+            );
 
         if (string.IsNullOrWhiteSpace(currency))
-            throw new DomainValidationException("Currency is required.");
+            throw new DomainValidationException(
+                "Currency is required."
+            );
 
         Amount = amount;
         Currency = currency.Trim().ToUpper();    
     }
 
-    public bool Equals(Money? other) // 
+    public bool Equals(Money? other)  
     {
         if (other is null)
             return false;

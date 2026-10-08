@@ -23,24 +23,18 @@ public sealed class OrganizationContext : IOrganizationContext
 
             if(httpContext is null)
             {
-                throw new InvalidOperationException(
-                    "Organization context is unavailable."
-                );
+                return Guid.Empty;
             }
 
             if(!httpContext.Items.TryGetValue(ItemKey, out var value))
             {
-                throw new InvalidOperationException(
-                    "Organization context is unavailable."
-                );
+                return Guid.Empty;
             }   
 
             if (value is not Guid organizationId || 
                 organizationId == Guid.Empty)
             {
-                throw new InvalidOperationException(
-                    "Organization context is unavailable."
-                );
+                return Guid.Empty;
             }
 
             return organizationId;

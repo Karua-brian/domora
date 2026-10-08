@@ -1,3 +1,4 @@
+using Domora.API.Common.Authorization;
 using Domora.API.Units;
 using Domora.Application.Units.Commands.RegisterUnit;
 using Microsoft.AspNetCore.Mvc;
@@ -8,13 +9,14 @@ namespace Domora.API.Controllers;
 [Route("api/units")]
 public sealed class UnitController : ControllerBase
 {
-    public readonly RegisterUnitHandler _handler;
+    private readonly RegisterUnitHandler _handler;
 
     public UnitController(RegisterUnitHandler handler)
     {
         _handler = handler;
     }
 
+    [RequireOrganizationAccess]
     [HttpPost]
     public async Task<IActionResult> Register(
         RegisterUnitRequest request, 
@@ -26,7 +28,10 @@ public sealed class UnitController : ControllerBase
             request.Type
             );
 
-        var response = await _handler.Handle(command, cancellationToken);
+        var response = await _handler.Handle(
+            command, 
+            cancellationToken
+        );
 
         return Created($"/api/units/{response.Id}", response);
 

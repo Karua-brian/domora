@@ -26,20 +26,25 @@ public class PaymentAllocation
         Money allocateAmount)
     {
         if (id == Guid.Empty)
-            throw new DomainValidationException("Payment allocation ID is required.");
+            throw new DomainValidationException(
+                "Payment allocation ID is required."
+            );
 
         if (paymentId == Guid.Empty)
-            throw new DomainValidationException("Payment ID is required.");
+            throw new DomainValidationException(
+                "Payment ID is required."
+            );
 
         if (invoiceId == Guid.Empty)
-            throw new DomainValidationException("Invoice ID is required.");
+            throw new DomainValidationException(
+                "Invoice ID is required."
+            );
 
         Id = id;
         PaymentId = paymentId;
         InvoiceId = invoiceId;
         AllocateAmount = allocateAmount;
     }
-
 
     public static PaymentAllocation Allocate(
         Guid paymentId,

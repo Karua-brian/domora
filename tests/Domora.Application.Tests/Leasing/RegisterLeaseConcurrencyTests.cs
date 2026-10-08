@@ -1,4 +1,5 @@
 using Domora.Application.Common.Context;
+using Domora.Application.Common.Exceptions;
 using Domora.Application.Leasing.Commands.RegisterLease;
 using Domora.Domain.Common;
 using Domora.Domain.Common.Exceptions;
@@ -280,32 +281,53 @@ public sealed class RegisterLeaseConcurrencyTests
                     commandB,
                     CancellationToken.None));
 
-        var results =
-            await Task.WhenAll(
+        await Task.WhenAll(
                 taskA,
                 taskB);
+
+        var resultA = await taskA;
+        var resultB = await taskB;
 
         // --------------------------------------------------------
         // Assert: exactly one registration succeeds
         // --------------------------------------------------------
 
-        var successfulOperations =
-            results.Count(
-                result => result.Exception is null);
+        var successfulOperation = 0;
+        Exception? capturedException = null;
 
-        var conflictFailures =
-            results.Count(
-                result =>
-                    result.Exception
-                    is ResourceConflictException);
+        if (resultA.Exception is null)
+        {
+            successfulOperation++;
+        }
+        else
+        {
+            capturedException = resultA.Exception;
+        }
+
+        if (resultB.Exception is null)
+        {
+            successfulOperation++;
+        }
+        else
+        {
+            capturedException = resultB.Exception;
+        }
 
         Assert.Equal(
             1,
-            successfulOperations);
+            successfulOperation
+        );
 
+        Assert.NotNull(
+            capturedException
+        );
+        Assert.IsType<ConcurrencyException>(
+            capturedException
+        );
         Assert.Equal(
-            1,
-            conflictFailures);
+            "The resource was modified by another operation. Please reload and try again.",
+            capturedException.Message
+        );
 
         // --------------------------------------------------------
         // Assert: database state

@@ -13,15 +13,21 @@ public class Organization
     private Organization(Guid id, OrganizationName name)
     {
         if (id == Guid.Empty)
-            throw new DomainValidationException("Organization ID is required.");
+            throw new DomainValidationException(
+                "Organization ID is required."
+            );
 
         Id = id;
         Name = name;
     }
 
-    public static Organization Register(OrganizationName name)
+    public static Organization Register(
+        OrganizationName name
+    )
     {
-
-        return new Organization(Guid.NewGuid(), name);
+        return new Organization(
+            Guid.NewGuid(), 
+            name
+        );
     }
 }

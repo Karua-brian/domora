@@ -10,7 +10,9 @@ public sealed class OrganizationsController : ControllerBase
 {
     private readonly RegisterOrganizationHandler _handler;
 
-    public OrganizationsController(RegisterOrganizationHandler handler)
+    public OrganizationsController(
+        RegisterOrganizationHandler handler
+    )
     {
         _handler = handler;
     }
@@ -21,14 +23,18 @@ public sealed class OrganizationsController : ControllerBase
         CancellationToken cancellationToken
         )
     {
-        Console.WriteLine($"Request ID: {Guid.NewGuid()}");
+        var command = new RegisterOrganizationCommand(
+            request.Name
+        );
 
-        Console.WriteLine($"Registering organization with name: {request.Name}");
+        var response = await _handler.Handle(
+            command, 
+            cancellationToken
+        );
 
-        var command = new RegisterOrganizationCommand(request.Name);
-
-        var response = await _handler.Handle(command, cancellationToken);
-
-        return Created($"/api/organizations/{response.Id}", response);
+        return Created(
+            $"/api/organizations/{response.Id}", 
+            response
+        );
     }
 }

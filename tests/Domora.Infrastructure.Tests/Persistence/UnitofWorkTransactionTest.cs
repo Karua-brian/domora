@@ -4,6 +4,7 @@ using Domora.Domain.Organizations.ValueObjects;
 using Domora.Infrastructure.Persistence;
 using Domora.Infrastructure.Persistence.Interceptors;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Domora.Infrastructure.Tests.Persistence;
 

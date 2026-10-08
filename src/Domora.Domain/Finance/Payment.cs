@@ -67,7 +67,14 @@ public class Payment
         Money allocatedToPaymentSoFar
     )
     {
-        var remaining = GetRemainingBalance(allocatedToPaymentSoFar);
+        if (TotalAmount.Currency != allocateAmount.Currency)
+            throw new DomainValidationException(
+                $"Currency mismatch. Cannot allocate {allocateAmount.Currency} from a {TotalAmount.Currency} payment."
+            );
+
+        var remaining = GetRemainingBalance(
+            allocatedToPaymentSoFar
+        );
 
         if (remaining.Amount < allocateAmount.Amount)
             throw new DomainValidationException(

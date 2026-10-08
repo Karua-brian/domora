@@ -35,23 +35,10 @@ public sealed class UnitOfWork : IUnitOfWork
         {
 
             throw new ConcurrencyException(
-                "The resource was modified by another operation.",
+                "The resource was modified by another operation. Please reload and try again.",
                 ex
                 );
         }
-        catch (DbUpdateException ex)
-            when (
-                ex.InnerException is PostgresException postgresException 
-                && postgresException.SqlState == PostgresErrorCodes.UniqueViolation
-                && postgresException.ConstraintName == "IX_Leases_UnitId"
-                )
-            {
-
-                throw new ResourceConflictException(
-                    "The unit already has an active lease.",
-                    ex
-                );    
-            }
         catch (DbUpdateException ex)
             when (
                 ex.InnerException is PostgresException postgresException 
@@ -78,6 +65,53 @@ public sealed class UnitOfWork : IUnitOfWork
                     ex
                 );
             }
+        catch (DbUpdateException ex)
+            when (
+                ex.InnerException is PostgresException postgresException 
+                && postgresException.SqlState == PostgresErrorCodes.UniqueViolation
+                && postgresException.ConstraintName == "UX_Properties_OrganizationId_Name"
+                )
+            {
+
+                throw new ResourceConflictException(
+                    "A property with this name already exists in the organization.",
+                    ex
+                );
+            }
+        catch (DbUpdateException ex)
+            when (
+                ex.InnerException is PostgresException postgresException 
+                && postgresException.SqlState == PostgresErrorCodes.UniqueViolation
+                && postgresException.ConstraintName == "UX_Units_ProprtyId_Number"
+                )
+            {
+
+                throw new ResourceConflictException(
+                    "A unit with this number already exists in the property.",
+                    ex
+                );
+            }
+        catch (DbUpdateException ex)
+            when (
+                ex.InnerException is PostgresException postgresException 
+                && postgresException.SqlState == PostgresErrorCodes.UniqueViolation
+                && postgresException.ConstraintName == "IX_Payments_Reference"
+                )
+            {
+
+                throw new ResourceConflictException(
+                    "A payment with this Reference already exists.",
+                    ex
+                );
+            }
+        catch (DbUpdateException ex)
+        {
+            throw new ConcurrencyException(
+                "The resource was modified by another operation. Please reload and try again.",
+                ex
+            );
+        }
+
             
     }   
 

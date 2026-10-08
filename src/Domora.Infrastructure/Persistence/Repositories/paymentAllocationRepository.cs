@@ -39,37 +39,29 @@ public sealed class PaymentAllocationRepository : IPaymentAllocationRepository
 
     public async Task<Money> GetAllocatedAmountForPaymentAsync(
         Guid paymentId,
+        string currency,
         CancellationToken cancellationToken
     )
     {
-        var payment = await _dbContext.Payments
-            .FindAsync(new object[] { paymentId }, cancellationToken);
-
-        if (payment is null)
-            throw new InvalidOperationException("Payment not found.");    
-
-        var allocatedAmount = await _dbContext.PaymentAllocations
+        var allocatedPaymentAmount = await _dbContext.PaymentAllocations
+            .AsNoTracking()
             .Where(x => x.PaymentId == paymentId)
             .SumAsync(x => x.AllocateAmount.Amount, cancellationToken);
 
-        return new Money(allocatedAmount, payment.TotalAmount.Currency);
+        return new Money(allocatedPaymentAmount, currency);
     }
 
     public async Task<Money> GetAllocatedAmountForInvoiceAsync(
         Guid invoiceId,
+        string currency,
         CancellationToken cancellationToken = default
     )
     {
-        var invoice = await _dbContext.Invoices
-            .FindAsync( new object[] { invoiceId }, cancellationToken);
-
-        if (invoice is null)
-            throw new InvalidOperationException("Invoice not found.");
-
-        var allocatedAmount = await _dbContext.PaymentAllocations
+        var allocatedInvoiceAmount = await _dbContext.PaymentAllocations
+            .AsNoTracking()
             .Where(x => x.InvoiceId == invoiceId)
             .SumAsync(x => x.AllocateAmount.Amount, cancellationToken);
 
-        return new Money(allocatedAmount, invoice.Amount.Currency);
+        return new Money(allocatedInvoiceAmount, currency);
     }
 }

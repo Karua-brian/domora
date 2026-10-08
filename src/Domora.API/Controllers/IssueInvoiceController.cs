@@ -1,3 +1,4 @@
+using Domora.API.Common.Authorization;
 using Domora.API.Finances.Invoices;
 using Domora.Application.Finance.Commands.IssueInvoice;
 using Domora.Domain.Common;
@@ -19,6 +20,7 @@ public sealed class IssueInvoiceController : ControllerBase
         _handler = handler;
     }
 
+    [RequireOrganizationAccess]
     [HttpPost]
     public async Task<IActionResult> Issue(
         IssueInvoiceRequest request,

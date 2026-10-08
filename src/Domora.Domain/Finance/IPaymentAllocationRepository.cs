@@ -16,11 +16,13 @@ public interface IPaymentAllocationRepository
 
     Task<Money> GetAllocatedAmountForPaymentAsync(
         Guid paymentId,
+        string currency,
         CancellationToken cancellationToken = default
     );
 
     Task<Money> GetAllocatedAmountForInvoiceAsync(
         Guid invoiceId,
+        string currency,
         CancellationToken cancellationToken = default
     );
 }

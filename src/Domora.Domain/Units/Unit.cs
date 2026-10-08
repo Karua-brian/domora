@@ -57,22 +57,12 @@ public class Unit
 
     public void Occupy()
     {
-        if (Status == OccupancyStatus.Occupied)
-            throw new ResourceConflictException(
-                "Unit is already occupied."
-            );
-
         Status = OccupancyStatus.Occupied;
         Version = Guid.NewGuid();
     }
 
     public void Vacate()
     {
-        if (Status == OccupancyStatus.Vacant)
-            throw new ResourceConflictException(
-                "Unit is already vacant."
-        );
-
         Status = OccupancyStatus.Vacant;
         Version = Guid.NewGuid();
     }

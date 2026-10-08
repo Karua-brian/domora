@@ -49,16 +49,20 @@ public sealed class AllocatePaymentHandler
             throw new NotFoundException("Invoice not found.");  
         
         
-        var allocatedToPayment = await _paymentAllocationRepository.GetAllocatedAmountForPaymentAsync(
-            command.PaymentId,
-            cancellationToken
-        );
+        var allocatedToPayment = await _paymentAllocationRepository
+            .GetAllocatedAmountForPaymentAsync(
+                command.PaymentId,
+                payment.TotalAmount.Currency,
+                cancellationToken
+            );
 
-        var allocatedToInvoice = await _paymentAllocationRepository.GetAllocatedAmountForInvoiceAsync(
-            command.InvoiceId,
-            cancellationToken
-        );
-
+        var allocatedToInvoice = await _paymentAllocationRepository
+            .GetAllocatedAmountForInvoiceAsync(
+                command.InvoiceId,
+                invoice.Amount.Currency,
+                cancellationToken
+            );
+            
         payment.EnsureCanAllocate(
             command.AllocateAmount,
             allocatedToPayment

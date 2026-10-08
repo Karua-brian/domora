@@ -1,3 +1,4 @@
+using Domora.API.Common.Authorization;
 using Domora.API.Finances.PaymentAllocations;
 using Domora.Application.Finance.Commands.AllocatePayment;
 using Domora.Domain.Common;
@@ -18,6 +19,7 @@ public sealed class PaymentAllocationsController : ControllerBase
         _handler = handler;
     }
 
+    [RequireOrganizationAccess]
     [HttpPost]
     public async Task<IActionResult> Allocate(
         AllocatePaymentRequest request,

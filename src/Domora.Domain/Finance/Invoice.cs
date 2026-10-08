@@ -71,7 +71,9 @@ public class Invoice
         Version = Guid.NewGuid();
     }
 
-    public Money GetOutstandingBalance(Money allocatedToInvoice)
+    public Money GetOutstandingBalance(
+        Money allocatedToInvoice
+    )
     {
         return new Money(
             Amount.Amount - allocatedToInvoice.Amount,
@@ -80,34 +82,41 @@ public class Invoice
     }
 
     public decimal AllocatePayment(
-        Money allocateAmount,
-        Money allocatedToInvoiceSoFar
+        Money paymentPool,
+        Money previouslyAllocatedAmount
     )
     {
-        var outstanding = GetOutstandingBalance(allocatedToInvoiceSoFar);
+         if (Amount.Currency != paymentPool.Currency)
+            throw new DomainValidationException(
+                $"Currency mismatch. Cannot allocate {paymentPool.Currency} from a {Amount.Currency} payment."
+            );
+        
+        // Calculate how much money this invoice is still waiting for
+        var outstanding = GetOutstandingBalance(
+            previouslyAllocatedAmount       
+        );
 
+        // If it's already 0 or negative, you cannot add money to it
         if (outstanding.Amount <= 0)
             throw new ResourceConflictException(
                 "Invoice has already been fully settled."
             );
 
-        if (outstanding.Amount < allocateAmount.Amount)
-            throw new DomainValidationException(
-                $"Allocation amount exceeds the invoice outstanding balance"
-            ); 
+        // Take either the full payment pool, or just what is needed to clear the bill
+        var actualAppliedAmount = Math.Min(
+            paymentPool.Amount, outstanding.Amount
+        ); 
         
         // Calculate final processed allocation bounds
-        var allocationAmount = Math.Min(
-            allocateAmount.Amount, outstanding.Amount
-        );
+        var remainingBalanceAfterAllocation = 
+            outstanding.Amount - actualAppliedAmount;
 
-        var outstandingAfterAllocation = outstanding.Amount - allocationAmount;
-
-        if (outstandingAfterAllocation == 0)
+        // Update the invoice status state automatically
+        if (remainingBalanceAfterAllocation == 0)
         {
             MarkAsPaid();
         }
 
-        return allocationAmount;
+        return actualAppliedAmount;
     }
 }

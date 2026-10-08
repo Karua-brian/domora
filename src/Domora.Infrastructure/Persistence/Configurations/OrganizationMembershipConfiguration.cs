@@ -19,6 +19,10 @@ public sealed class OrganizationMembershipConfiguration : IEntityTypeConfigurati
         builder.Property(m => m.OrganizationId)
             .IsRequired();
 
+        builder.Property(m => m.Role)
+            .HasConversion<string>()
+            .IsRequired();
+
         builder.HasIndex(m => new
         {
             m.UserId,
