@@ -4,10 +4,10 @@ using Domora.Application.Finance.Commands.AllocatePayment;
 using Domora.Domain.Common;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Domora.API.Controllers;
+namespace Domora.API.Controllers.Finances;
 
 [ApiController]
-[Route("api/payment-allocations")]
+[Route("api/finances/payment-allocations")]
 public sealed class PaymentAllocationsController : ControllerBase
 {
     private readonly AllocatePaymentHandler _handler;
@@ -28,7 +28,7 @@ public sealed class PaymentAllocationsController : ControllerBase
     {
         var command = new AllocatePaymentCommand(
             request.PaymentId,
-            request.InvoiceId,
+            request.LeaseId,
             new Money(request.Amount, request.Currency)
         );
 
@@ -37,6 +37,6 @@ public sealed class PaymentAllocationsController : ControllerBase
             cancellationToken
         );
 
-        return Created($"api/payment-allocations/{response.Id}", response);
+        return Created($"api/finances/payment-allocations/{response.Id}", response);
     }
 }

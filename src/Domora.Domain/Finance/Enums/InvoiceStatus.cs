@@ -2,7 +2,7 @@ namespace Domora.Domain.Finance.Enums;
 
 public enum InvoiceStatus
 {
-    Pending,
-
-    Paid
+    Pending = 1,
+    PartiallyPaid = 2,
+    Paid = 3
 }

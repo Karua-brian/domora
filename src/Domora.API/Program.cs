@@ -155,11 +155,20 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseAuthentication();
 
-app.UseAuthorization();
-
 app.UseMiddleware<OrganizationAuthorizationMiddleware>();
 
+app.UseAuthorization();
+
 app.MapControllers();
+
+if (app.Environment.IsEnvironment("Testing"))
+{
+    app.MapGet(
+        "/test/organization-context",
+        (IOrganizationContext organizationContext) =>
+            Results.Ok(organizationContext.OrganizationId)
+    );
+}
 
 app.Run();
 

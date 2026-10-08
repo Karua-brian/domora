@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Domora.API.Tests.Infrastructure;
 using Domora.Domain.Organizations.Enums;
 using Domora.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
@@ -43,61 +44,41 @@ public sealed class RegisterOrganizationTests : IClassFixture<DomoraWebApplicati
     {
         _factory = factory;
     }
-
     [Fact]
-    public async Task Register_should_create_organization_and_owner_membership()
+    public async Task Authenticated_user_should_register_organization_without_organization_context()
     {
         // Arrange
-        var client = _factory.CreateClient();
+        Guid userId;
 
-        var email = $"owner-{Guid.NewGuid():N}@example.com";
-        const string password = "SecurePassword123!"; 
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var context =
+                scope.ServiceProvider
+                    .GetRequiredService<DomoraDbContext>();
 
-        // Post to User Registration
-        var registerUserResponse = await client.PostAsJsonAsync(
-            "auth/register",
-            new
-            {
-                Email = email,
-                Password = password
-            }
-        );
-        registerUserResponse.EnsureSuccessStatusCode();
+            var user =
+                await TestData.CreateUserAsync(context);
 
-        // Post to Login to acquire token stream
-        var loginResponse = await client.PostAsJsonAsync(
-            "auth/login",
-            new
-            {
-                Email = email,
-                Password = password
-            }
-        );
-        loginResponse.EnsureSuccessStatusCode(); 
+            userId = user.Id;
+        }
 
-        var authentication = await loginResponse
-            .Content
-            .ReadFromJsonAsync<AuthenticationResponse>();
-
-        Assert.NotNull(authentication);
-
-        // Attach Bearer Token to Request Headers
-        client.DefaultRequestHeaders.Authorization = 
-            new AuthenticationHeaderValue(
-                "Bearer",
-                authentication!.AccessToken
+        using var client =
+            AuthenticatedClientFactory.Create(
+                _factory,
+                userId
             );
 
-        var organizationName = $"Organization-{Guid.NewGuid():N}";
+        var request = new
+        {
+            name = $"Registration Test Org {Guid.NewGuid():N}"
+        };
 
-        // Act: Create the organization entry
-        var response = await client.PostAsJsonAsync(
-            "api/organizations",
-            new
-            {
-                Name = organizationName
-            }
-        );
+        // Act
+        var response =
+            await client.PostAsJsonAsync(
+                "/api/organizations",
+                request
+            );
 
         // Assert
         Assert.Equal(
@@ -105,39 +86,45 @@ public sealed class RegisterOrganizationTests : IClassFixture<DomoraWebApplicati
             response.StatusCode
         );
 
-        var organizationResponse = await response
-            .Content
-            .ReadFromJsonAsync<RegisterOrganizationResponse>();
+        var result =
+            await response.Content
+                .ReadFromJsonAsync<RegisterOrganizationResponse>();
 
-        Assert.NotNull(organizationResponse);
+        Assert.NotNull(result);
+        Assert.NotEqual(Guid.Empty, result.Id);
+        Assert.Equal(request.name, result.Name);
 
-        // 4. Verify Database Integrity State using an isolated scoped read
-        await using var scope = _factory.Services.CreateAsyncScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<DomoraDbContext>();
+        // Verify the owner membership was persisted.
+        using var verificationScope =
+            _factory.Services.CreateScope();
 
-        var organization = await dbContext.Organizations.FindAsync(
-            organizationResponse!.Id
-        );
-        Assert.NotNull(organization);
+        var verificationContext =
+            verificationScope.ServiceProvider
+                .GetRequiredService<DomoraDbContext>();
 
-        var membership = await dbContext.OrganizationMemberships
-            .SingleOrDefaultAsync(
-                m => m.OrganizationId == organizationResponse.Id
-            );
+        var membership =
+            await verificationContext
+                .OrganizationMemberships
+                .SingleOrDefaultAsync(
+                    membership =>
+                        membership.OrganizationId == result.Id &&
+                        membership.UserId == userId
+                );
 
         Assert.NotNull(membership);
+        Assert.Equal(userId, membership.UserId);
         Assert.Equal(
-            organizationResponse.Id, 
-            membership!.OrganizationId
+            result.Id,
+            membership.OrganizationId
         );
         Assert.Equal(
-            OrganizationRole.Owner, 
+            OrganizationRole.Owner,
             membership.Role
         );
     }
 
     [Fact]
-    public async Task Register_should_require_authentication()
+    public async Task Anonymous_user_should_not_register_organization()
     {
         // Arrange
         var client = _factory.CreateClient();

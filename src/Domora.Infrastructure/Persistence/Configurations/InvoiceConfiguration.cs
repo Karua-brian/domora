@@ -16,6 +16,11 @@ public sealed class InvoiceConfigurations : IEntityTypeConfiguration<Invoice>
             .IsRequired();
 
         builder
+            .Property(i => i.Type)
+            .HasConversion<string>()
+            .IsRequired();
+
+        builder
             .OwnsOne(x => x.Amount, 
             money =>
             {

@@ -31,14 +31,17 @@ public sealed class UnitConcurrencyTests
 
     private sealed class TestOrganizationContext : IOrganizationContext
     {
+        public Guid OrganizationId { get; private set; }
         public TestOrganizationContext(Guid organizationId)
         {
             OrganizationId = organizationId;
         }
 
-        public Guid OrganizationId { get; }
+        public void Set(Guid organizationId)
+        {
+            OrganizationId = organizationId;
+        }
     }
-
     private async Task ExecuteAsOrganizationContextAsync(
         Guid organizationId,
         Func<DomoraDbContext, Task> action

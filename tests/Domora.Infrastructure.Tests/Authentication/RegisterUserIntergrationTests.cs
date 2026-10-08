@@ -31,7 +31,17 @@ public sealed class RegisterUserIntergrationTests
 
     private sealed class TestOrganizationContext : IOrganizationContext
     {
-        public Guid OrganizationId { get; } = Guid.Empty;
+        public Guid OrganizationId { get; private set; } = Guid.Empty;
+
+        public TestOrganizationContext(Guid organizationId)
+        {
+            OrganizationId = organizationId;
+        }
+
+        public void Set(Guid organizationId)
+        {
+            OrganizationId = organizationId;
+        }
     }
 
     [Fact]
@@ -50,7 +60,7 @@ public sealed class RegisterUserIntergrationTests
             passwordHasher,
             new UnitOfWork(
                 context,
-                new TestOrganizationContext()
+                new TestOrganizationContext(Guid.Empty)
             )
         );
 
@@ -109,7 +119,7 @@ public sealed class RegisterUserIntergrationTests
             new PasswordHasher(),
             new UnitOfWork(
                 firstContext,
-                new TestOrganizationContext()
+                new TestOrganizationContext(Guid.Empty)
             )
         );
 
@@ -138,7 +148,7 @@ public sealed class RegisterUserIntergrationTests
             new PasswordHasher(),
             new UnitOfWork(
                 secondContext,
-                new TestOrganizationContext()
+                new TestOrganizationContext(Guid.Empty)
             )
         );
 

@@ -39,6 +39,7 @@ public sealed class IssueInvoiceHandler
 
         var invoice = Invoice.Create(
             lease.Id,
+            command.Type,
             command.Amount,
             command.DueDate
         ); 
@@ -53,6 +54,7 @@ public sealed class IssueInvoiceHandler
         return new IssueInvoiceResponse(
             invoice.Id,
             invoice.LeaseId,
+            invoice.Type,
             invoice.Amount.Amount,
             invoice.Amount.Currency,
             invoice.DueDate,

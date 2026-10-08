@@ -2,7 +2,7 @@ namespace Domora.API.Finances.PaymentAllocations;
 
 public sealed record AllocatePaymentRequest(
     Guid PaymentId,
-    Guid InvoiceId,
+    Guid LeaseId,
 
     decimal Amount,
     string Currency

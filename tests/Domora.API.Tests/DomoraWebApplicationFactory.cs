@@ -20,6 +20,7 @@ public class DomoraWebApplicationFactory : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        builder.UseEnvironment("Testing");
         // Override your appsettings configuration keys so your token generator 
         // and validation middleware use the exact same test keys!
         builder.ConfigureAppConfiguration((_, configuration) =>

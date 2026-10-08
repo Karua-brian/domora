@@ -1,4 +1,6 @@
 using Domora.Domain.Finance;
+using Domora.Domain.Finance.Enums;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domora.Infrastructure.Persistence.Repositories;
 
@@ -33,6 +35,18 @@ public sealed class InvoiceRepository : IInvoiceRepository
                 new object[] { id },
                 cancellationToken
             );
+    }
+
+    public async Task<IReadOnlyCollection<Invoice>> GetUnpaidInvoicesByLeaseIdAsync(
+        Guid leaseId,
+        CancellationToken cancellationToken
+    )
+    {
+        return await _dbContext.Invoices
+            .Where(i => i.LeaseId == leaseId && i.Status != InvoiceStatus.Paid)
+            .OrderBy(i => i.DueDate) // Enforces FIFO sorting rules at the database boundary
+            .ThenBy(i => i.Type)
+            .ToListAsync(cancellationToken);
     }
 
     public async Task UpdateAsync(

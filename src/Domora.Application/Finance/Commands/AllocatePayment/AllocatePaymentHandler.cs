@@ -9,11 +9,8 @@ namespace Domora.Application.Finance.Commands.AllocatePayment;
 public sealed class AllocatePaymentHandler
 {
     private readonly IPaymentRepository _paymentRepository;
-
     private readonly IInvoiceRepository _invoiceRepository;
-
     private readonly IPaymentAllocationRepository _paymentAllocationRepository;
-
     private readonly IUnitOfWork _unitOfWork;
 
     public AllocatePaymentHandler(
@@ -39,59 +36,84 @@ public sealed class AllocatePaymentHandler
             cancellationToken
         );
         if (payment is null)
-            throw new NotFoundException("Payment not found.");
-
-        var invoice = await _invoiceRepository.GetByIdAsync(
-            command.InvoiceId,
-            cancellationToken
-        );
-        if (invoice is null)
-            throw new NotFoundException("Invoice not found.");  
+            throw new NotFoundException("Payment not found."); 
         
-        
-        var allocatedToPayment = await _paymentAllocationRepository
+        var allocatedToPaymentSoFar = await _paymentAllocationRepository
             .GetAllocatedAmountForPaymentAsync(
                 command.PaymentId,
                 payment.TotalAmount.Currency,
                 cancellationToken
             );
 
-        var allocatedToInvoice = await _paymentAllocationRepository
-            .GetAllocatedAmountForInvoiceAsync(
-                command.InvoiceId,
-                invoice.Amount.Currency,
-                cancellationToken
-            );
-            
         payment.EnsureCanAllocate(
             command.AllocateAmount,
-            allocatedToPayment
+            allocatedToPaymentSoFar
         );
 
-        var dynamicAllocationAmount = invoice.AllocatePayment(
-            command.AllocateAmount,
-            allocatedToInvoice 
-        );
-
-        var paymentAllocation = PaymentAllocation.Allocate(
-            payment.Id,
-            invoice.Id,
-            new Money(dynamicAllocationAmount, command.AllocateAmount.Currency)
-        );
-
-        await _paymentAllocationRepository.AddAsync(
-            paymentAllocation,
+        var unpaidInvoices = await _invoiceRepository.GetUnpaidInvoicesByLeaseIdAsync(
+            command.LeaseId,
             cancellationToken
-        );
+        ); 
+
+        var remainingCashToAllocate = command.AllocateAmount.Amount;
+        decimal totalAllocatedInThisSession = 0;
+
+        // WATERFALL EXECUTION LOOP
+        foreach (var invoice in unpaidInvoices)
+        {
+            if (remainingCashToAllocate <= 0)
+                break;
+
+            var allocatedToInvoiceSoFar = await _paymentAllocationRepository
+                .GetAllocatedAmountForInvoiceAsync(
+                    invoice.Id,
+                    invoice.Amount.Currency,
+                    cancellationToken
+                );
+
+            var outstanding = invoice.GetOutstandingBalance(allocatedToInvoiceSoFar);
+            if (outstanding.Amount <= 0)
+                continue;
+
+            var availableCashPool = new Money(
+                remainingCashToAllocate,
+                command.AllocateAmount.Currency
+            );
+
+            var actualConsumedAmount = invoice.AllocatePayment(
+                availableCashPool,
+                allocatedToInvoiceSoFar
+            );
+
+            if (actualConsumedAmount > 0)
+            {
+                var paymentAllocation = PaymentAllocation.Allocate(
+                    payment.Id,
+                    invoice.Id,
+                    new Money(
+                        actualConsumedAmount,
+                        command.AllocateAmount.Currency
+                    )
+                );
+
+                await _paymentAllocationRepository.AddAsync(
+                    paymentAllocation,
+                    cancellationToken
+                );
+
+                remainingCashToAllocate -= actualConsumedAmount;
+                totalAllocatedInThisSession += actualConsumedAmount;
+            }
+        }
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new AllocatePaymentResponse(
-            paymentAllocation.Id,
-            paymentAllocation.PaymentId,
-            paymentAllocation.InvoiceId,
-            paymentAllocation.AllocateAmount.Amount,
-            paymentAllocation.AllocateAmount.Currency
+            Guid.NewGuid(),
+            payment.Id,
+            command.LeaseId,
+            totalAllocatedInThisSession,
+            command.AllocateAmount.Currency
         );
     } 
 }

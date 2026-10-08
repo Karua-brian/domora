@@ -65,12 +65,16 @@ public sealed class EndLeaseIntegrationTests
 
     private sealed class TestOrganizationContext : IOrganizationContext
     {
+        public Guid OrganizationId { get; private set; }
         public TestOrganizationContext(Guid organizationId)
         {
             OrganizationId = organizationId;
         }
 
-        public Guid OrganizationId { get; }
+        public void Set(Guid organizationId)
+        {
+            OrganizationId = organizationId;
+        }
     }
 
     private async Task<(Guid UnitId, Guid LeaseId)> CreateTestActiveLeaseAsync()

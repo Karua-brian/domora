@@ -4,10 +4,10 @@ using Domora.Application.Finance.Commands.ReceivePayment;
 using Domora.Domain.Common;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Domora.API.Controllers;
+namespace Domora.API.Controllers.Finances;
 
 [ApiController]
-[Route("api/payments")]
+[Route("api/finances/payments")]
 
 public sealed class PaymentController : ControllerBase
 {
@@ -37,7 +37,7 @@ public sealed class PaymentController : ControllerBase
             cancellationToken
         );
 
-        return Created($"api/payments/{response.Id}", 
+        return Created($"api/finances/payments/{response.Id}", 
             response
         );
     }

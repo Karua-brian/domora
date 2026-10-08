@@ -4,6 +4,6 @@ namespace Domora.Application.Finance.Commands.AllocatePayment;
 
 public sealed record AllocatePaymentCommand(
     Guid PaymentId,
-    Guid InvoiceId,
+    Guid LeaseId,
     Money AllocateAmount
 );

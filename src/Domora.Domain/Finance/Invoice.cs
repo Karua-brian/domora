@@ -14,6 +14,8 @@ public class Invoice
 
     public DateOnly DueDate { get; }
 
+    public InvoiceType Type { get; }
+
     public InvoiceStatus Status { get; private set;}
 
     public Guid Version { get; private set; } //  
@@ -28,6 +30,7 @@ public class Invoice
         Guid leaseId, 
         Money amount, 
         DateOnly dueDate, 
+        InvoiceType type,
         InvoiceStatus status
         )
     {
@@ -41,12 +44,14 @@ public class Invoice
         LeaseId = leaseId;
         Amount = amount;
         DueDate = dueDate;
+        Type = type;
         Status = status;
         Version = Guid.NewGuid(); 
     }   
 
     public static Invoice Create(
         Guid leaseId,
+        InvoiceType type,
         Money amount,
         DateOnly dueDate
     )
@@ -56,6 +61,7 @@ public class Invoice
             leaseId,
             amount,
             dueDate,
+            type,
             InvoiceStatus.Pending        
         );
     }
@@ -116,7 +122,12 @@ public class Invoice
         {
             MarkAsPaid();
         }
-
+        else if (actualAppliedAmount > 0)
+        {
+            Status = InvoiceStatus.PartiallyPaid;
+            Version = Guid.NewGuid();
+        }
+        
         return actualAppliedAmount;
     }
 }

@@ -28,12 +28,16 @@ public sealed class OrganizationIsolationTests
 
     public sealed class TestOrganizationContext : IOrganizationContext
     {
+        public Guid OrganizationId { get; private set; }
         public TestOrganizationContext(Guid organizationId)
         {
             OrganizationId = organizationId;
         }
 
-        public Guid OrganizationId { get; }
+        public void Set(Guid organizationId)
+        {
+            OrganizationId = organizationId;
+        }
     }
 
     private DomoraDbContext ExecuteAsOrganizationContextAsync(

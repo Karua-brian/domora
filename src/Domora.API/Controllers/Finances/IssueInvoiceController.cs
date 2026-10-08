@@ -2,12 +2,13 @@ using Domora.API.Common.Authorization;
 using Domora.API.Finances.Invoices;
 using Domora.Application.Finance.Commands.IssueInvoice;
 using Domora.Domain.Common;
+using Domora.Domain.Finance.Enums;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Domora.API.Controllers;
+namespace Domora.API.Controllers.Finances;
 
 [ApiController]
-[Route("api/invoices")]
+[Route("api/finances/invoices")]
 
 public sealed class IssueInvoiceController : ControllerBase
 {
@@ -29,6 +30,7 @@ public sealed class IssueInvoiceController : ControllerBase
     {
         var command = new IssueInvoiceCommand(
             request.LeaseId,
+            request.Type,
             new Money(request.Amount, request.Currency),
             request.DueDate
         );
@@ -38,6 +40,6 @@ public sealed class IssueInvoiceController : ControllerBase
             cancellationToken
         );
 
-        return Created($"api/invoices/{response.Id}", response);
+        return Created($"api/finances/invoices/{response.Id}", response);
     }
 }

@@ -87,9 +87,13 @@ public sealed class RegisterPropertyTests
     }
     private sealed class TestOrganizationContext : IOrganizationContext
     {
-        public Guid OrganizationId { get; }
-
+        public Guid OrganizationId { get; private set; }
         public TestOrganizationContext(Guid organizationId)
+        {
+            OrganizationId = organizationId;
+        }
+
+        public void Set(Guid organizationId)
         {
             OrganizationId = organizationId;
         }
