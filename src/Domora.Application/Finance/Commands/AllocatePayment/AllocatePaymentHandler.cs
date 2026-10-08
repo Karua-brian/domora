@@ -87,6 +87,13 @@ public sealed class AllocatePaymentHandler
 
             if (actualConsumedAmount > 0)
             {
+                var consumptionMoney = new Money(
+                    actualConsumedAmount,
+                    command.AllocateAmount.Currency
+                );
+
+                payment.DeductCredit(consumptionMoney);
+
                 var paymentAllocation = PaymentAllocation.Allocate(
                     payment.Id,
                     invoice.Id,

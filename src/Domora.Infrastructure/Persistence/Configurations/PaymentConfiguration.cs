@@ -26,6 +26,18 @@ public sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
             });
 
         builder
+            .OwnsOne(p => p.UnallocatedAmount, money =>
+            {
+                money.Property(m => m.Amount)
+                    .HasColumnName("UnallocatedAmount")
+                    .HasPrecision(18, 2);
+
+                money.Property(m => m.Currency)
+                    .HasColumnName("Currency")
+                    .HasMaxLength(3);
+            });
+
+        builder
             .Property(x => x.PaidAt)
             .IsRequired();
 

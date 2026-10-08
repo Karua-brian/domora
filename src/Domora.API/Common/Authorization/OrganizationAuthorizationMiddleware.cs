@@ -1,7 +1,7 @@
 using Domora.Application.Common.Authorization;
 using Domora.Application.Common.Context;
 
-namespace Domora.API.Middleware;
+namespace Domora.API.Common.Authorization;
 
 public sealed class OrganizationAuthorizationMiddleware
 {
