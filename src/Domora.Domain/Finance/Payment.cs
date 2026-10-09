@@ -2,6 +2,7 @@ namespace Domora.Domain.Finance;
 
 using Domora.Domain.Common.Exceptions;
 using Domora.Domain.Common;
+using Domora.Domain.Finance.Enums;
 
 public class Payment
 {
@@ -10,6 +11,7 @@ public class Payment
     public Money UnallocatedAmount { get; private set; } // Tracks leftover account credits
     public DateTimeOffset PaidAt { get; }
     public string Reference { get; }
+    public PaymentStatus Status { get; private set; }
     public Guid Version { get; private set; }
     private Payment()
     {
@@ -31,9 +33,10 @@ public class Payment
 
         Id = id;
         TotalAmount = amount;
-        UnallocatedAmount = amount;
+        UnallocatedAmount = new Money(amount.Amount, amount.Currency);
         PaidAt = paidAt;
         Reference = refrence;
+        Status = PaymentStatus.Active;
         Version = Guid.NewGuid();
     }
 
@@ -50,10 +53,27 @@ public class Payment
         );
     }
 
+    public void Void()
+    {
+        if (Status == PaymentStatus.Voided)
+            throw new DomainValidationException(
+                "This payment entry has already been voided."
+            );
+
+        Status = PaymentStatus.Voided;
+        UnallocatedAmount = new Money(0m, TotalAmount.Currency); // Wipe out available accounr credits
+        Version = Guid.NewGuid();
+    }
+
     public void DeductCredit(
         Money amount
     )
     {
+        if (Status == PaymentStatus.Voided)
+            throw new ResourceConflictException(
+                "Cannot modify credit pools on a voided payment."
+            );
+
         if (TotalAmount.Currency != amount.Currency)
             throw new DomainValidationException(
                 "Currency mismatch while deducting payment credit."

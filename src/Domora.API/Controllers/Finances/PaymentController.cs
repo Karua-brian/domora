@@ -1,6 +1,7 @@
 using Domora.API.Common.Authorization;
 using Domora.API.Finances.Payments;
 using Domora.Application.Finance.Commands.ReceivePayment;
+using Domora.Application.Finance.Commands.VoidPayment;
 using Domora.Domain.Common;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,13 +12,16 @@ namespace Domora.API.Controllers.Finances;
 
 public sealed class PaymentController : ControllerBase
 {
-    private readonly ReceivePaymentHandler _handler;
+    private readonly ReceivePaymentHandler _receiveHandler;
+    private readonly VoidPaymentHandler _voidHandler;
 
     public PaymentController(
-        ReceivePaymentHandler handler
+        ReceivePaymentHandler receiveHandler,
+        VoidPaymentHandler voidHandler
     )
     {
-        _handler = handler;
+        _receiveHandler = receiveHandler;
+        _voidHandler = voidHandler;
     }
 
     [RequireOrganizationAccess]
@@ -32,7 +36,7 @@ public sealed class PaymentController : ControllerBase
             request.Reference
         );
 
-        var response = await _handler.Handle(
+        var response = await _receiveHandler.Handle(
             command,
             cancellationToken
         );
@@ -40,6 +44,25 @@ public sealed class PaymentController : ControllerBase
         return Created($"api/finances/payments/{response.Id}", 
             response
         );
+    }
+
+    [RequireOrganizationAccess]
+    [HttpPost("{paymentId:guid}/void")]
+    public async Task<IActionResult> Void(
+        [FromRoute] Guid paymentId,
+        CancellationToken cancellationToken
+    )
+    {
+        var command = new VoidPaymentCommand(
+            paymentId
+        );
+
+        var response = await _voidHandler.Handle(
+            command,
+            cancellationToken
+        );
+
+        return Ok(response);
     }
 }
 

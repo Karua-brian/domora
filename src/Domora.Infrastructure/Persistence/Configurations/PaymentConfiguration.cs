@@ -12,15 +12,15 @@ public sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.HasKey(x => x.Id);
 
         builder
-            .OwnsOne(x => x.TotalAmount, money =>
+            .OwnsOne(p => p.TotalAmount, money =>
             {
-                money.Property(x => x.Amount)
-                    .HasColumnName("Amount")
+                money.Property(m => m.Amount)
+                    .HasColumnName("TotalAmount")
                     .HasPrecision(18, 2)
                     .IsRequired();
 
-                money.Property(x => x.Currency)
-                    .HasColumnName("Currency")
+                money.Property(m => m.Currency)
+                    .HasColumnName("TotalCurrency")
                     .HasMaxLength(3)
                     .IsRequired();
             });
@@ -33,9 +33,14 @@ public sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
                     .HasPrecision(18, 2);
 
                 money.Property(m => m.Currency)
-                    .HasColumnName("Currency")
+                    .HasColumnName("UnallocatedCurrency")
                     .HasMaxLength(3);
             });
+
+        builder
+            .Property(p => p.Status)
+            .HasConversion<string>()
+            .IsRequired();
 
         builder
             .Property(x => x.PaidAt)

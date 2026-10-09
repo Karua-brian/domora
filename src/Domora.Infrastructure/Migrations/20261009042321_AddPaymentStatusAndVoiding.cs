@@ -5,26 +5,24 @@
 namespace Domora.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class AddUnallocatedAmountToPayments : Migration
+    public partial class AddPaymentStatusAndVoiding : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<decimal>(
-                name: "UnallocatedAmount",
+            migrationBuilder.AddColumn<string>(
+                name: "Status",
                 table: "Payments",
-                type: "numeric(18,2)",
-                precision: 18,
-                scale: 2,
+                type: "text",
                 nullable: false,
-                defaultValue: 0m);
+                defaultValue: "");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "UnallocatedAmount",
+                name: "Status",
                 table: "Payments");
         }
     }

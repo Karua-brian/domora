@@ -25,4 +25,10 @@ public interface IPaymentAllocationRepository
         string currency,
         CancellationToken cancellationToken = default
     );
+
+    Task<IReadOnlyCollection<PaymentAllocation>> GetAllocationsByPaymentIdAsync(
+        Guid paymentId,
+        CancellationToken cancellationToken = default
+    );
+    void Remove(PaymentAllocation paymentAllocation);
 }

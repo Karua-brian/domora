@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Domora.Infrastructure.Migrations
 {
     [DbContext(typeof(DomoraDbContext))]
-    [Migration("20261008164700_AddUnallocatedAmountToPayments")]
+    [Migration("20261008174955_AddUnallocatedAmountToPayments")]
     partial class AddUnallocatedAmountToPayments
     {
         /// <inheritdoc />
@@ -320,14 +320,13 @@ namespace Domora.Infrastructure.Migrations
                             b1.Property<decimal>("Amount")
                                 .HasPrecision(18, 2)
                                 .HasColumnType("numeric(18,2)")
-                                .HasColumnName("Amount");
+                                .HasColumnName("TotalAmount");
 
                             b1.Property<string>("Currency")
                                 .IsRequired()
-                                .ValueGeneratedOnUpdateSometimes()
                                 .HasMaxLength(3)
                                 .HasColumnType("character varying(3)")
-                                .HasColumnName("Currency");
+                                .HasColumnName("TotalCurrency");
 
                             b1.HasKey("PaymentId");
 
@@ -349,10 +348,9 @@ namespace Domora.Infrastructure.Migrations
 
                             b1.Property<string>("Currency")
                                 .IsRequired()
-                                .ValueGeneratedOnUpdateSometimes()
                                 .HasMaxLength(3)
                                 .HasColumnType("character varying(3)")
-                                .HasColumnName("Currency");
+                                .HasColumnName("UnallocatedCurrency");
 
                             b1.HasKey("PaymentId");
 

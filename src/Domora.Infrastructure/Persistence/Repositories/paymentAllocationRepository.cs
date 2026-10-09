@@ -64,4 +64,21 @@ public sealed class PaymentAllocationRepository : IPaymentAllocationRepository
 
         return new Money(allocatedInvoiceAmount, currency);
     }
+
+    public async Task<IReadOnlyCollection<PaymentAllocation>> GetAllocationsByPaymentIdAsync(
+        Guid paymentId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return await _dbContext.PaymentAllocations
+            .Where(pa => pa.PaymentId == paymentId)
+            .ToListAsync(cancellationToken);
+    }
+
+    public void Remove(
+        PaymentAllocation paymentAllocation
+    )
+    {
+        _dbContext.PaymentAllocations.Remove(paymentAllocation);
+    }
 }
