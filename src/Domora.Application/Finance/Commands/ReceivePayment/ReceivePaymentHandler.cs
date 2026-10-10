@@ -23,6 +23,22 @@ public sealed class ReceivePaymentHandler
         CancellationToken cancellationToken
     )
     {
+        var existingPayment = await _paymentRepository.GetByReferenceAsync(
+            command.Reference,
+            cancellationToken
+        );
+
+        if (existingPayment is not null)
+        {
+            return new ReceivePaymentResponse(
+                existingPayment.Id,
+                existingPayment.TotalAmount.Amount,
+                existingPayment.TotalAmount.Currency,
+                existingPayment.PaidAt,
+                existingPayment.Reference,
+                existingPayment.Version
+            );
+        }
 
         var payment = Payment.Receive(
             command.Amount,

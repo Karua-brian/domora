@@ -12,5 +12,8 @@ public interface IPaymentRepository
         CancellationToken cancellationToken = default
     );
 
-
+    Task<Payment?> GetByReferenceAsync(
+        string reference,
+        CancellationToken cancellationToken = default
+    );
 }

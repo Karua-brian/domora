@@ -1,4 +1,5 @@
 using Domora.Domain.Finance;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domora.Infrastructure.Persistence.Repositories;
 
@@ -32,6 +33,19 @@ public sealed class PaymentRepository : IPaymentRepository
         return await _dbContext.Payments
             .FindAsync(
                 new object[] { id },
+                cancellationToken
+            );
+    }
+
+    public async Task<Payment?> GetByReferenceAsync(
+        string reference,
+        CancellationToken cancellationToken
+    )
+    {
+        return await _dbContext.Payments
+            .AsNoTracking()
+            .SingleOrDefaultAsync(
+                p => p.Reference == reference,
                 cancellationToken
             );
     }
