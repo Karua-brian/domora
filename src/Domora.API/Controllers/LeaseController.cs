@@ -47,6 +47,7 @@ public sealed class LeaseController : ControllerBase
         return Created($"/api/leases/{response.Id}", response);
     }
 
+    [RequireOrganizationAccess]
     [HttpPost("{leaseId:guid}/end")]
     public async Task<IActionResult> End(
         Guid leaseId,

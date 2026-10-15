@@ -1,63 +1,68 @@
-using Domora.Application.Common.Context;
+    using Domora.Application.Common.Context;
 
-namespace Domora.API.Common;
+    namespace Domora.API.Common;
 
-public sealed class OrganizationContext : IOrganizationContext
-{
-    public const string ItemKey =
-        "Domora.OrganizationContext.OrganizationId";
-
-    private readonly IHttpContextAccessor _httpContextAccessor;
-
-    public OrganizationContext(
-        IHttpContextAccessor httpContextAccessor)
+    public sealed class OrganizationContext : IOrganizationContext
     {
-        _httpContextAccessor = httpContextAccessor;
-    }
+        public const string ItemKey =
+            "Domora.OrganizationContext.OrganizationId";
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ThreadLocal<Guid> _backgroundOrganizationId = new(() => Guid.Empty);
 
-    public Guid OrganizationId
-    {
-        get
+        public OrganizationContext(
+            IHttpContextAccessor httpContextAccessor)
         {
-            var httpContext = _httpContextAccessor.HttpContext;
+            _httpContextAccessor = httpContextAccessor;
+        }
 
-            if (httpContext is null)
-                return Guid.Empty;
-
-            if (!httpContext.Items.TryGetValue(
-                    ItemKey,
-                    out var value))
+        public Guid OrganizationId
+        {
+            get
             {
-                return Guid.Empty;
+                var httpContext = _httpContextAccessor.HttpContext;
+
+                if (httpContext is null)
+                    return _backgroundOrganizationId.Value;;
+
+                if (!httpContext.Items.TryGetValue(
+                        ItemKey,
+                        out var value))
+                {
+                    return _backgroundOrganizationId.Value;
+                }
+
+                // FALLBACK LOOKUP: If running in a background process, return the thread variable!
+                if (httpContext is null)
+                    return _backgroundOrganizationId.Value;
+
+                return value is Guid organizationId &&
+                    organizationId != Guid.Empty
+                    ? organizationId
+                    : _backgroundOrganizationId.Value;
+
+                
+            }
+        }
+
+        public void Set(Guid organizationId)
+        {
+            if (organizationId == Guid.Empty)
+            {
+                throw new ArgumentException(
+                    "Organization ID is required.",
+                    nameof(organizationId)
+                );
             }
 
-            return value is Guid organizationId &&
-                   organizationId != Guid.Empty
-                ? organizationId
-                : Guid.Empty;
+            var httpContext =
+                _httpContextAccessor.HttpContext;
+
+            if (httpContext is null)
+            {
+                _backgroundOrganizationId.Value = organizationId;
+                return;
+            }
+
+            httpContext.Items[ItemKey] = organizationId;
         }
     }
-
-    public void Set(Guid organizationId)
-    {
-        if (organizationId == Guid.Empty)
-        {
-            throw new ArgumentException(
-                "Organization ID is required.",
-                nameof(organizationId)
-            );
-        }
-
-        var httpContext =
-            _httpContextAccessor.HttpContext;
-
-        if (httpContext is null)
-        {
-            throw new InvalidOperationException(
-                "Organization context is unavailable."
-            );
-        }
-
-        httpContext.Items[ItemKey] = organizationId;
-    }
-}

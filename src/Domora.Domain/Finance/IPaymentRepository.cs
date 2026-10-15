@@ -13,6 +13,7 @@ public interface IPaymentRepository
     );
 
     Task<Payment?> GetByReferenceAsync(
+        Guid organizationId,
         string reference,
         CancellationToken cancellationToken = default
     );

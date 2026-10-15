@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Domora.Application.Organizations.Commands.RegisterOrganization;
 using Domora.API.Organizations;
+using Domora.API.Common.Authorization;
 
 namespace Domora.API.Controllers;
 

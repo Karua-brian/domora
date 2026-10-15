@@ -8,6 +8,9 @@ public interface IUnitOfWork
     Task SaveChangesAsync(
         CancellationToken cancellationToken = default
     );
+    // Task ClearChangeTrackerAsync(
+    //     CancellationToken cancellationToken = default
+    // );
 }
 
 public interface ITransaction : IAsyncDisposable

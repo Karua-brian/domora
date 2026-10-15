@@ -1,3 +1,4 @@
+using Domora.Application.Common.Context;
 using Domora.Application.Common.Persistence;
 using Domora.Domain.Finance;
 
@@ -5,15 +6,17 @@ namespace Domora.Application.Finance.Commands.ReceivePayment;
 
 public sealed class ReceivePaymentHandler
 {
+    private readonly IOrganizationContext _organizationContext;
     private readonly IPaymentRepository _paymentRepository;
-
     private readonly IUnitOfWork _unitOfWork;
 
     public ReceivePaymentHandler(
+        IOrganizationContext organizationContext,
         IPaymentRepository paymentRepository,
         IUnitOfWork unitOfWork
     )
     {
+        _organizationContext = organizationContext;
         _paymentRepository = paymentRepository;
         _unitOfWork = unitOfWork;
     }
@@ -24,6 +27,7 @@ public sealed class ReceivePaymentHandler
     )
     {
         var existingPayment = await _paymentRepository.GetByReferenceAsync(
+            _organizationContext.OrganizationId,
             command.Reference,
             cancellationToken
         );
@@ -41,6 +45,7 @@ public sealed class ReceivePaymentHandler
         }
 
         var payment = Payment.Receive(
+            _organizationContext.OrganizationId,
             command.Amount,
             command.Reference
         );

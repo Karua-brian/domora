@@ -38,6 +38,7 @@ public sealed class PaymentRepository : IPaymentRepository
     }
 
     public async Task<Payment?> GetByReferenceAsync(
+        Guid organizationId,
         string reference,
         CancellationToken cancellationToken
     )
@@ -45,7 +46,9 @@ public sealed class PaymentRepository : IPaymentRepository
         return await _dbContext.Payments
             .AsNoTracking()
             .SingleOrDefaultAsync(
-                p => p.Reference == reference,
+                p =>
+                    p.OrganizationId == organizationId &&
+                    p.Reference == reference,
                 cancellationToken
             );
     }

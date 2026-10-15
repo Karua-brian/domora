@@ -7,6 +7,7 @@ using Domora.Application.Common.Context;
 using Domora.Application.Common.Persistence;
 using Domora.Application.Finance.Commands.AllocatePayment;
 using Domora.Application.Finance.Commands.IssueInvoice;
+using Domora.Application.Finance.Commands.IssueMonthlyInvoices;
 using Domora.Application.Finance.Commands.ReceivePayment;
 using Domora.Application.Finance.Commands.VoidPayment;
 using Domora.Application.Leasing.Commands.EndLease;
@@ -27,6 +28,7 @@ using Domora.Infrastructure.Persistence.Interceptors;
 using Domora.Infrastructure.Persistence.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -106,6 +108,8 @@ builder.Services.AddScoped<EndLeaseHandler>();
 
 builder.Services.AddScoped<IssueInvoiceHandler>();
 
+builder.Services.AddScoped<IssueMonthlyInvoicesHandler>();
+
 builder.Services.AddScoped<ReceivePaymentHandler>();
 
 builder.Services.AddScoped<VoidPaymentHandler>();
@@ -164,12 +168,49 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Test endpoints for organization context
 if (app.Environment.IsEnvironment("Testing"))
 {
+    // Endpoint to test organization context without requiring organization access
     app.MapGet(
         "/test/organization-context",
         (IOrganizationContext organizationContext) =>
+        Results.Ok(organizationContext.OrganizationId)
+    );
+
+    // Endpoint to test organization context with requiring organization access
+    app.MapGet(
+        "/test/organization-context-required",
+        (IOrganizationContext organizationContext) =>
             Results.Ok(organizationContext.OrganizationId)
+    )
+    .WithMetadata(new RequireOrganizationAccessAttribute());
+
+    app.MapPost(
+        "/api/test/trigger-monthly-billing",
+        async (
+            [FromQuery] string date,
+            [FromHeader(Name = "X-Organization-Id")] Guid? organizationId,
+            IssueMonthlyInvoicesHandler handler,
+            CancellationToken cancellationToken
+        ) =>
+        {
+            if (!DateOnly.TryParse(date, out var parsedDate))
+            {
+                return Results.BadRequest("Invalid date format. Use YYYY-MM-DD.");
+            }
+
+            List<Guid>? targetOrgs = null;
+            if (organizationId.HasValue && organizationId.Value != Guid.Empty)
+            {
+                targetOrgs = new List<Guid> { organizationId.Value };
+            }
+
+            var command = new IssueMonthlyInvoicesCommand(parsedDate, targetOrgs);
+            var response = await handler.Handle(command, cancellationToken);
+            
+            return Results.Ok(response);
+        }
     );
 }
 

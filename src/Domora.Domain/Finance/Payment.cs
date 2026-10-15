@@ -7,6 +7,7 @@ using Domora.Domain.Finance.Enums;
 public class Payment
 {
     public Guid Id { get; }
+    public Guid OrganizationId { get; }
     public Money TotalAmount { get; }
     public Money UnallocatedAmount { get; private set; } // Tracks leftover account credits
     public DateTimeOffset PaidAt { get; }
@@ -22,6 +23,7 @@ public class Payment
 
     private Payment(
         Guid id, 
+        Guid organizationId,
         Money amount, 
         DateTimeOffset paidAt, 
         string refrence
@@ -32,6 +34,7 @@ public class Payment
             throw new DomainValidationException("Payment ID is required.");
 
         Id = id;
+        OrganizationId = organizationId;
         TotalAmount = amount;
         UnallocatedAmount = new Money(amount.Amount, amount.Currency);
         PaidAt = paidAt;
@@ -41,12 +44,19 @@ public class Payment
     }
 
     public static Payment Receive(
+        Guid organizationId,
         Money amount,
         string reference
     )
     {
+        if (organizationId == Guid.Empty)
+            throw new DomainValidationException(
+                "Organization ID is required."
+            );
+
         return new Payment(
             Guid.NewGuid(),
+            organizationId,
             amount,
             DateTimeOffset.UtcNow,
             reference

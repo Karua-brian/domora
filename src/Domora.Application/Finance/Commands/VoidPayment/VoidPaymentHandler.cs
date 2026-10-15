@@ -1,3 +1,4 @@
+using Domora.Application.Common.Context;
 using Domora.Application.Common.Exceptions;
 using Domora.Application.Common.Persistence;
 using Domora.Domain.Finance;
@@ -6,18 +7,21 @@ namespace Domora.Application.Finance.Commands.VoidPayment;
 
 public sealed class VoidPaymentHandler
 {
+    private readonly IOrganizationContext _organizationContext;
     private readonly IPaymentRepository _paymentRepository;
     private readonly IInvoiceRepository _invoiceRepository;
     private readonly IPaymentAllocationRepository _paymentAllocationRepository;
     private readonly IUnitOfWork _unitOfWork;
 
     public VoidPaymentHandler(
+        IOrganizationContext organizationContext,
         IPaymentRepository paymentRepository,
         IInvoiceRepository invoiceRepository,
         IPaymentAllocationRepository paymentAllocationRepository,
         IUnitOfWork unitOfWork
     )
     {
+        _organizationContext = organizationContext;
         _paymentRepository = paymentRepository;
         _invoiceRepository = invoiceRepository;
         _paymentAllocationRepository = paymentAllocationRepository;
@@ -34,6 +38,11 @@ public sealed class VoidPaymentHandler
             cancellationToken
         );
         if (payment is null)
+            throw new NotFoundException(
+                "Payment entry not found."
+            );
+
+        if (payment.OrganizationId != _organizationContext.OrganizationId)
             throw new NotFoundException(
                 "Payment entry not found."
             );

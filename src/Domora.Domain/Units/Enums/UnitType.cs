@@ -20,5 +20,7 @@ public enum UnitType
 
     Office,
     
-    Warehouse
+    Warehouse,
+
+    Apartment
 }

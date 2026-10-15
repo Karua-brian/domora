@@ -32,6 +32,15 @@ public sealed class LeaseRepository : ILeaseRepository
                 );
     }
 
+    public async Task<IReadOnlyCollection<Lease>> GetActiveLeasesAsync(
+        CancellationToken cancellationToken
+    )
+    {
+        return await _dbContext.Leases
+            .Where(l => l.Status == LeaseStatus.Active)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<bool> HasActiveLeaseAsync(
         Guid unitId,
         CancellationToken cancellationToken

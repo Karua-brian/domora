@@ -14,7 +14,7 @@ public static class TestData
     )
     {
         var user = User.Register(
-            UserEmail.Create($"test-{Guid.NewGuid():N}@.com"),
+            UserEmail.Create($"test-{Guid.NewGuid():N}@example.com"),
             UserPassword.Create("Test-password-hash")
         );
 

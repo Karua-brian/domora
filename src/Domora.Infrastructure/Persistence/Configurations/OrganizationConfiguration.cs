@@ -21,9 +21,13 @@ public sealed class OrganizationConfiguration : IEntityTypeConfiguration<Organiz
             .HasMaxLength(100);
 
         builder
-            .HasIndex(o => o.Name)
-            .IsUnique();
-    }
+            .HasIndex(o => new {
+                o.Id, 
+                o.Name
+            })
+            .IsUnique()
+            .HasDatabaseName("UX_Organizations_Name");
+    }   
 }
 
 

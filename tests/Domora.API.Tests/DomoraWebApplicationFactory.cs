@@ -48,12 +48,11 @@ public class DomoraWebApplicationFactory : WebApplicationFactory<Program>
             }
 
             // Register a fresh, isolated internal service provider specifically for the test DbContext
-            // 🚀 REVERT: Point back to your official local PostgreSQL test database string environment variable
             var connectionString = Environment.GetEnvironmentVariable("DomoraTest");
             if (string.IsNullOrWhiteSpace(connectionString))
-            {
-                throw new InvalidOperationException("DomoraTest connection environment variable is not configured.");
-            }
+                throw new InvalidOperationException(
+                    "DomoraTest connection environment variable is not configured."
+                );
 
             services.AddDbContext<DomoraDbContext>(options =>
             {

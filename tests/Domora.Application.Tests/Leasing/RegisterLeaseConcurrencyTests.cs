@@ -1,5 +1,4 @@
 using Domora.Application.Common.Context;
-using Domora.Application.Common.Exceptions;
 using Domora.Application.Leasing.Commands.RegisterLease;
 using Domora.Domain.Common;
 using Domora.Domain.Common.Exceptions;
@@ -35,10 +34,7 @@ public sealed class RegisterLeaseConcurrencyTests
             .Options;
     }
 
-    // ============================================================
     // Organization context
-    // ============================================================
-
     private sealed class TestOrganizationContext : IOrganizationContext
     {
         public Guid OrganizationId { get; private set; }
@@ -81,10 +77,7 @@ public sealed class RegisterLeaseConcurrencyTests
         await transaction.CommitAsync();
     }
 
-    // ============================================================
     // Test data
-    // ============================================================
-
     private async Task<(Guid UnitId, Guid OrganizationId)> CreateTestUnitAsync()
     {
         var organization = Organization.Register(
@@ -124,10 +117,7 @@ public sealed class RegisterLeaseConcurrencyTests
         return (unit.Id, organization.Id);
     }
 
-    // ============================================================
     // Concurrency coordination
-    // ============================================================
-
     private sealed class CoordinatedUnitRepository
         : IUnitRepository
     {
@@ -177,10 +167,8 @@ public sealed class RegisterLeaseConcurrencyTests
         }
     }
 
-    // ============================================================
-    // Operation result helper
-    // ============================================================
 
+    // Operation result helper
     private sealed record OperationResult<T>(
         T? Value,
         Exception? Exception);
@@ -204,17 +192,10 @@ public sealed class RegisterLeaseConcurrencyTests
         }
     }
 
-    // ============================================================
-    // Tests
-    // ============================================================
-
     [Fact]
     public async Task Concurrent_registration_for_same_unit_should_allow_only_one_active_lease()
     {
-        // --------------------------------------------------------
         // Arrange
-        // --------------------------------------------------------
-
         var (unitId, organizationId) =
             await CreateTestUnitAsync();
 
@@ -269,10 +250,8 @@ public sealed class RegisterLeaseConcurrencyTests
                 tenantB,
                 new Money(15000m, "KES"));
 
-        // --------------------------------------------------------
-        // Act
-        // --------------------------------------------------------
 
+        // Act
         var taskA =
             CaptureAsync(
                 handlerA.Handle(
@@ -292,10 +271,7 @@ public sealed class RegisterLeaseConcurrencyTests
         var resultA = await taskA;
         var resultB = await taskB;
 
-        // --------------------------------------------------------
         // Assert: exactly one registration succeeds
-        // --------------------------------------------------------
-
         var successfulOperation = 0;
         Exception? capturedException = null;
 
@@ -325,18 +301,15 @@ public sealed class RegisterLeaseConcurrencyTests
         Assert.NotNull(
             capturedException
         );
-        Assert.IsType<ConcurrencyException>(
+        Assert.IsType<ResourceConflictException>(
             capturedException
         );
-        Assert.Equal(
-            "The resource was modified by another operation. Please reload and try again.",
+            Assert.Equal(
+            "An active lease already exists for this unit.",
             capturedException.Message
         );
 
-        // --------------------------------------------------------
         // Assert: database state
-        // --------------------------------------------------------
-
         await using var verificationContext =
             new DomoraDbContext(_options);
 

@@ -41,6 +41,7 @@ public sealed class PropertyController : ControllerBase
         return Created($"/api/properties/{response.Id}" ,response);
     }
 
+    [RequireOrganizationAccess]
     [HttpGet("{propertyId:guid}")]
     public async Task<IActionResult> Get(
         Guid propertyId,

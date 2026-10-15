@@ -52,8 +52,13 @@ public sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
             .IsRequired();
 
         builder
-            .HasIndex(x => x.Reference)
-            .IsUnique();
+            .HasIndex(p => new
+            {
+                p.OrganizationId,
+                p.Reference
+            })
+            .IsUnique()
+            .HasDatabaseName("UX_Payments_OrganizationId_Reference");
 
         builder
             .Property(x => x.Version)

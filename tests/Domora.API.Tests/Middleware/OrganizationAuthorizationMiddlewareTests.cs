@@ -80,6 +80,31 @@ public sealed class OrganizationAuthorizationMiddlewareTests
     }
 
     [Fact]
+    public async Task Authenticated_request_without_header_should_be_rejected_when_organization_is_required()
+    {
+        // Arrange
+        var user = await CreateUserWithOrganizationAsync();
+        
+        using var client =
+            AuthenticatedClientFactory.Create(
+                _factory,
+                user.UserId
+            );
+
+        // Act 
+        var response = await client.GetAsync(
+            "/test/organization-context-required"
+        );
+
+        // Assert
+        Assert.Equal(
+            HttpStatusCode.BadRequest,
+            response.StatusCode
+        );
+
+    }
+
+    [Fact]
     public async Task Malformed_organization_header_should_return_bad_request()
     {
         // Arrange

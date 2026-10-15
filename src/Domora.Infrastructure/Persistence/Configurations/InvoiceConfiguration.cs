@@ -55,5 +55,14 @@ public sealed class InvoiceConfigurations : IEntityTypeConfiguration<Invoice>
             .ValueGeneratedNever()
             .IsConcurrencyToken()
             .IsRequired();
+        
+        builder
+            .HasIndex(i => new 
+            {   i.LeaseId, 
+                i.Type, 
+                i.DueDate 
+            })
+            .HasDatabaseName("UX_Invoices_LeaseId_Type_DueDate")
+            .IsUnique();
     }
 }

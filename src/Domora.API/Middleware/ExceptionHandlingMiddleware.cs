@@ -65,7 +65,8 @@ public sealed class ExceptionHandlingMiddleware
         {
             _logger.LogWarning(
                 ex,
-                "Resource conflict while processing {Method} {Path}.",
+                "Resource conflict ({ExceptionType}) while processing {Method} {Path}.",
+                ex.GetType().Name,
                 context.Request.Method,
                 context.Request.Path
             );
@@ -82,7 +83,8 @@ public sealed class ExceptionHandlingMiddleware
         {
             _logger.LogWarning(
                 ex,
-                "Concurrency conflict while processing {Method} {Path}.",
+                "Concurrency conflict ({ExceptionType}) while processing {Method} {Path}.",
+                ex.GetType().Name,
                 context.Request.Method,
                 context.Request.Path
             );

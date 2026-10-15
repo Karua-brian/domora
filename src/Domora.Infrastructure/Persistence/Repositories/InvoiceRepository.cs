@@ -49,6 +49,26 @@ public sealed class InvoiceRepository : IInvoiceRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<bool> HasInvoiceGeneratedForPeriodAsync(
+        Guid leaseId,
+        InvoiceType type,
+        DateOnly startDate,
+        DateOnly endDate,
+        CancellationToken cancellationToken
+    )
+    {
+        return await _dbContext.Invoices
+            .AsNoTracking()
+            .AnyAsync(i =>
+                i.LeaseId == leaseId &&
+                i.Type == type &&
+                i.DueDate >= startDate &&
+                i.DueDate <= endDate,
+                cancellationToken
+            );
+    }
+
+
     public async Task UpdateAsync(
         Invoice invoice,
         CancellationToken cancellationToken

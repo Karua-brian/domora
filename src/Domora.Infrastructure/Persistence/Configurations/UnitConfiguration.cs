@@ -44,17 +44,13 @@ public sealed class UnitConfiguration : IEntityTypeConfiguration<Unit>
             .HasOne<Property>()
             .WithMany()
             .HasForeignKey(x => x.PropertyId)
-            .OnDelete(DeleteBehavior.Restrict); 
-
-        builder.Property<uint>("xmin")
-            .HasColumnType("xid")
-            .ValueGeneratedOnAddOrUpdate()
-            .IsRowVersion();   
+            .OnDelete(DeleteBehavior.Restrict);    
 
         builder
             .Property(x => x.Version)
             .HasColumnType("uuid")
             .ValueGeneratedNever()
-            .IsRequired();
+            .IsRequired()
+            .IsConcurrencyToken();
     }
 }

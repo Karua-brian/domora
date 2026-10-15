@@ -104,15 +104,15 @@ public sealed class OrganizationContextTests
 
         var context = new OrganizationContext(accessor);
 
+        var targetOrgId = Guid.NewGuid();
+
         // Act
-        var exception = Assert.Throws<InvalidOperationException>(
-            () => context.Set(Guid.NewGuid())
-        );
+        context.Set(targetOrgId);
 
         // Assert
         Assert.Equal(
-            "Organization context is unavailable.",
-            exception.Message
+            targetOrgId,
+            context.OrganizationId
         );
     }
 

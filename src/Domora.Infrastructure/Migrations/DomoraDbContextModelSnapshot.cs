@@ -48,7 +48,9 @@ namespace Domora.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("LeaseId");
+                    b.HasIndex("LeaseId", "Type", "DueDate")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Invoices_LeaseId_Type_DueDate");
 
                     b.ToTable("Invoices");
                 });
@@ -57,6 +59,9 @@ namespace Domora.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("PaidAt")
@@ -77,8 +82,9 @@ namespace Domora.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Reference")
-                        .IsUnique();
+                    b.HasIndex("OrganizationId", "Reference")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Payments_OrganizationId_Reference");
 
                     b.ToTable("Payments");
                 });
@@ -129,12 +135,6 @@ namespace Domora.Infrastructure.Migrations
                     b.Property<Guid>("Version")
                         .HasColumnType("uuid");
 
-                    b.Property<uint>("xmin")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
-
                     b.HasKey("Id");
 
                     b.HasIndex("UnitId")
@@ -157,8 +157,9 @@ namespace Domora.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Name")
-                        .IsUnique();
+                    b.HasIndex("Id", "Name")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Organizations_Name");
 
                     b.ToTable("Organizations");
                 });
@@ -235,12 +236,6 @@ namespace Domora.Infrastructure.Migrations
 
                     b.Property<Guid>("Version")
                         .HasColumnType("uuid");
-
-                    b.Property<uint>("xmin")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
 
                     b.HasKey("Id");
 
