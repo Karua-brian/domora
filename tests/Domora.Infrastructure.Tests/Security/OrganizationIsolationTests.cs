@@ -8,7 +8,7 @@ using Domora.Infrastructure.Persistence.Interceptors;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
-namespace Domorsa.Infrastructure.Tests.Security;
+namespace Domora.Infrastructure.Tests.Security;
 
 public sealed class OrganizationIsolationTests
 {

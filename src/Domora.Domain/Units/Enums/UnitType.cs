@@ -2,25 +2,25 @@ namespace Domora.Domain.Units.Enums;
 
 public enum UnitType
 {
-    SingleRoom,
+    SingleRoom = 0,
 
-    DoubleRoom,
+    DoubleRoom = 1,
 
-    Bedsitter,
+    Bedsitter = 2,
 
-    Studio,
+    Studio = 3,
 
-    OneBedroom,
+    OneBedroom = 4,
 
-    TwoBedroom,
+    TwoBedroom = 5,
 
-    ThreeBedroom,
+    ThreeBedroom = 6,
 
-    Shop,
+    Shop = 7,
 
-    Office,
+    Office = 8,
     
-    Warehouse,
+    Warehouse = 9,
 
-    Apartment
+    Apartment = 10
 }

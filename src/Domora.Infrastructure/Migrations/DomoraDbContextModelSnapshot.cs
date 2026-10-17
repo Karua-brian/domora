@@ -133,6 +133,7 @@ namespace Domora.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
@@ -235,6 +236,7 @@ namespace Domora.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");

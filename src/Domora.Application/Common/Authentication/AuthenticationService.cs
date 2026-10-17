@@ -1,3 +1,4 @@
+using Domora.Application.Common.Exceptions;
 using Domora.Application.Common.Persistence;
 
 namespace Domora.Application.Common.Authentication;
@@ -33,7 +34,9 @@ public sealed class AuthenticationService : IAuthenticationService
         );
 
         if (user is null)
-            return null;
+            throw new NotFoundException(
+                $"User with email '{email}' not found."
+            );
 
         if (!_passwordHasher.Verify(
                 password,

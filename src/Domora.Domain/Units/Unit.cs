@@ -46,6 +46,13 @@ public class Unit
         UnitType type   
         )
     {
+        if (Guid.Empty == propertyId)
+            throw new DomainValidationException("Property ID is required.");
+
+        if (!Enum.IsDefined(type))
+            throw new DomainValidationException(
+                "Unit type is invalid."
+            );
         return new Unit(
             Guid.NewGuid(), 
             propertyId, 
