@@ -64,5 +64,14 @@ public sealed class InvoiceConfigurations : IEntityTypeConfiguration<Invoice>
             })
             .HasDatabaseName("UX_Invoices_LeaseId_Type_DueDate")
             .IsUnique();
+
+        builder
+            .HasIndex(i => new
+            {
+                i.OrganizationId,
+                i.Id
+            })
+            .IsUnique()
+            .HasDatabaseName("UX_Invoices_OrganizationId_Id");
     }
 }

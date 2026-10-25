@@ -1,3 +1,4 @@
+using Domora.Application.Common.Context;
 using Domora.Application.Common.Exceptions;
 using Domora.Application.Common.Persistence;
 using Domora.Domain.Finance;
@@ -7,18 +8,19 @@ namespace Domora.Application.Finance.Commands.IssueInvoice;
 
 public sealed class IssueInvoiceHandler
 {
+    private readonly IOrganizationContext _organizationContext;
     private readonly IInvoiceRepository _invoiceRepository;
-
     private readonly ILeaseRepository _leaseRepository;
-
     private readonly IUnitOfWork _unitOfWork;
 
     public IssueInvoiceHandler(
+        IOrganizationContext organizationContext,
         IInvoiceRepository invoiceRepository,
         ILeaseRepository leaseRepository,
         IUnitOfWork unitOfWork
     )
     {
+        _organizationContext = organizationContext;
         _invoiceRepository = invoiceRepository;
         _leaseRepository = leaseRepository;
         _unitOfWork = unitOfWork;
@@ -38,6 +40,7 @@ public sealed class IssueInvoiceHandler
             throw new NotFoundException("Lease not found.");
 
         var invoice = Invoice.Create(
+            _organizationContext.OrganizationId,
             lease.Id,
             command.Type,
             command.Amount,

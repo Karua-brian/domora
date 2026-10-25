@@ -10,44 +10,44 @@ public sealed class UnitConfiguration : IEntityTypeConfiguration<Unit>
 {
     public void Configure(EntityTypeBuilder<Unit> builder)
     {
-        builder.HasKey(x => x.Id);
+        builder.HasKey(u => u.Id);
 
         builder
-            .Property(x => x.PropertyId)
+            .Property(u => u.PropertyId)
             .IsRequired();
 
         builder
-            .Property(x => x.Number)
+            .Property(u => u.Number)
             .HasConversion(
                 number => number.Value,
                 value => UnitNumber.Create(value)
             );
 
         builder
-            .HasIndex(x => new
+            .HasIndex(u => new
             {
-               x.PropertyId,
-               x.Number 
+               u.PropertyId,
+               u.Number 
             })
             .HasDatabaseName("UX_Units_ProprtyId_Number")
             .IsUnique();
 
         builder
-            .Property(x => x.Type)
+            .Property(u => u.Type)
             .HasConversion<string>();
 
         builder
-            .Property(x => x.Status)
+            .Property(u => u.Status)
             .HasConversion<string>();        
 
         builder
             .HasOne<Property>()
             .WithMany()
-            .HasForeignKey(x => x.PropertyId)
+            .HasForeignKey(u => u.PropertyId)
             .OnDelete(DeleteBehavior.Restrict);    
 
         builder
-            .Property(x => x.Version)
+            .Property(u => u.Version)
             .HasColumnType("uuid")
             .ValueGeneratedNever()
             .IsRequired()

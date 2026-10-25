@@ -66,6 +66,9 @@ public sealed class IssueMonthlyInvoicesHandler
             // Every organization's billing work must use its own tenant context.
             _organizationContext.Set(organizationId);
 
+            await using var transaction =
+                await _unitOfWork.BeginTransactionAsync(cancellationToken);
+
             var activeLeases = await _leaseRepository.GetActiveLeasesAsync(
                 cancellationToken
             );
@@ -88,6 +91,7 @@ public sealed class IssueMonthlyInvoicesHandler
                 if (!rentExists)
                 {
                     var rentInvoice = Invoice.Create(
+                        _organizationContext.OrganizationId,
                         lease.Id,
                         InvoiceType.Rent,
                         lease.MonthlyRent,
@@ -115,6 +119,7 @@ public sealed class IssueMonthlyInvoicesHandler
                 if (!garbageExists)
                 {
                     var garbageInvoice = Invoice.Create(
+                        _organizationContext.OrganizationId,
                         lease.Id,
                         InvoiceType.Garbage,
                         new Money(100.00m, lease.MonthlyRent.Currency),
@@ -137,6 +142,8 @@ public sealed class IssueMonthlyInvoicesHandler
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 generatedInvoices += stagedInvoiceCount;
             }
+
+            await transaction.CommitAsync(cancellationToken);
 
             // Count the organization even if it has no active leases.
             processedOrganizations++;

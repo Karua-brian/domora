@@ -77,7 +77,7 @@ public sealed class EndLeaseIntegrationTests
         }
     }
 
-    private async Task<(Guid UnitId, Guid LeaseId)> CreateTestActiveLeaseAsync()
+    private async Task<(Guid organizationId, Guid UnitId, Guid LeaseId)> CreateTestActiveLeaseAsync()
     {
         await using var context = new DomoraDbContext(_options);
 
@@ -115,7 +115,7 @@ public sealed class EndLeaseIntegrationTests
             }
         );
 
-        return (unit.Id, lease.Id);
+        return (organization.Id, unit.Id, lease.Id);
     }
 
     private sealed class AsyncCoordinatedLeaseRepository : ILeaseRepository
@@ -242,7 +242,7 @@ public sealed class EndLeaseIntegrationTests
     [Fact]
     public async Task Created_active_lease_should_have_occupied_unit()
     {
-        var (unitId, _) =await CreateTestActiveLeaseAsync();
+        var (_, unitId, _) =await CreateTestActiveLeaseAsync();
 
         await using var context =
             new DomoraDbContext(_options);
@@ -260,14 +260,14 @@ public sealed class EndLeaseIntegrationTests
     public async Task Ending_active_lease_should_end_lease_and_vacate_unit()
     {
         // Arrange 
-        var (unitId, leaseId) = await CreateTestActiveLeaseAsync();
+        var (organizationId, unitId, leaseId) = await CreateTestActiveLeaseAsync();
 
         await using var context = new DomoraDbContext(_options);
 
-        var organizationContext = new TestOrganizationContext(Guid.NewGuid());
+        var organizationContext = new TestOrganizationContext(organizationId);
 
         var handler = new EndLeaseHandler(
-            new LeaseRepository(context),
+            new LeaseRepository(context, organizationContext),
             new UnitRepository(context),
             new UnitOfWork(context, organizationContext)
         );
@@ -309,7 +309,7 @@ public sealed class EndLeaseIntegrationTests
     public async Task Ending_already_ended_lease_should_fail()
     {
         // Arrange
-        var (_, leaseId) = await CreateTestActiveLeaseAsync();
+        var (organizationId, _, leaseId) = await CreateTestActiveLeaseAsync();
 
         await using var contextSetup = new DomoraDbContext(_options);
 
@@ -326,10 +326,10 @@ public sealed class EndLeaseIntegrationTests
 
         await using var contextExecution = new DomoraDbContext(_options);
 
-        var organizationContext = new TestOrganizationContext(Guid.NewGuid());
+        var organizationContext = new TestOrganizationContext(organizationId);
 
         var handler = new EndLeaseHandler(
-            new LeaseRepository(contextExecution),
+            new LeaseRepository(contextExecution, organizationContext),
             new UnitRepository(contextExecution),
             new UnitOfWork(contextExecution, organizationContext)
         );
@@ -353,14 +353,14 @@ public sealed class EndLeaseIntegrationTests
     public async Task Ending_lease_before_start_date_should_fail()
     {
         // Arrange
-        var (_, leaseId) = await CreateTestActiveLeaseAsync();
+        var (organizationId, _, leaseId) = await CreateTestActiveLeaseAsync();
 
         await using var context = new DomoraDbContext(_options);
 
-        var organizationContext = new TestOrganizationContext(Guid.NewGuid());
+        var organizationContext = new TestOrganizationContext(organizationId);
 
         var handler = new EndLeaseHandler(
-            new LeaseRepository(context),
+            new LeaseRepository(context, organizationContext),
             new UnitRepository(context),
             new UnitOfWork(context, organizationContext)
         );
@@ -386,10 +386,13 @@ public sealed class EndLeaseIntegrationTests
     public async Task Concurrent_lease_termination_requests_should_only_process_once()
     {
         // 1. Arrange
-        var (_, leaseId) = await CreateTestActiveLeaseAsync();
+        var (organizationId, _, leaseId) = await CreateTestActiveLeaseAsync();
 
         await using var contextA = new DomoraDbContext(_options);
         await using var contextB = new DomoraDbContext(_options);
+
+        var organizationContext =
+            new TestOrganizationContext(organizationId);
 
         // Clear trackers to ensure a clean slate
         contextA.ChangeTracker.Clear(); 
@@ -401,13 +404,13 @@ public sealed class EndLeaseIntegrationTests
         // Wrap your real repositories with the async decorator
         var coordinatedRepoA = 
             new AsyncCoordinatedLeaseRepository(
-            new LeaseRepository(contextA), 
+            new LeaseRepository(contextA, organizationContext), 
             leaseBarrier
         );
 
         var coordinatedRepoB = 
             new AsyncCoordinatedLeaseRepository(
-            new LeaseRepository(contextB), 
+            new LeaseRepository(contextB, organizationContext), 
             leaseBarrier
         );
 
@@ -422,8 +425,6 @@ public sealed class EndLeaseIntegrationTests
             new UnitRepository(contextB),
             unitBarrier
         );
-
-        var organizationContext = new TestOrganizationContext(Guid.NewGuid());
 
         var handlerA = new EndLeaseHandler(
             coordinatedRepoA,

@@ -1,5 +1,6 @@
 using Domora.Domain.Leasing;
 using Domora.Domain.Leasing.Enums;
+using Domora.Application.Common.Context;
 using Microsoft.EntityFrameworkCore;
 
 namespace Domora.Infrastructure.Persistence.Repositories;
@@ -7,10 +8,15 @@ namespace Domora.Infrastructure.Persistence.Repositories;
 public sealed class LeaseRepository : ILeaseRepository
 {
     private readonly DomoraDbContext _dbContext;
+    private readonly IOrganizationContext _organizationContext;
 
-    public LeaseRepository(DomoraDbContext dbContext)
+    public LeaseRepository(
+        DomoraDbContext dbContext,
+        IOrganizationContext organizationContext
+        )
     {
         _dbContext = dbContext;
+        _organizationContext = organizationContext;
     }
 
     public async Task AddAsync(
@@ -27,7 +33,7 @@ public sealed class LeaseRepository : ILeaseRepository
     {
         return await _dbContext.Leases
             .SingleOrDefaultAsync(
-                x => x.Id == id,
+                l => l.Id == id,
                 cancellationToken
                 );
     }
@@ -36,9 +42,19 @@ public sealed class LeaseRepository : ILeaseRepository
         CancellationToken cancellationToken
     )
     {
-        return await _dbContext.Leases
-            .Where(l => l.Status == LeaseStatus.Active)
-            .ToListAsync(cancellationToken);
+        var organizationId = _organizationContext.OrganizationId;
+
+        var query =
+            from lease in _dbContext.Leases
+            join unit in _dbContext.Units
+                on lease.UnitId equals unit.Id
+            join property in _dbContext.Properties
+                on unit.PropertyId equals property.Id
+            where lease.Status == LeaseStatus.Active
+                && property.OrganizationId == organizationId
+            select lease;
+
+        return await query.ToListAsync(cancellationToken);
     }
 
     public async Task<bool> HasActiveLeaseAsync(

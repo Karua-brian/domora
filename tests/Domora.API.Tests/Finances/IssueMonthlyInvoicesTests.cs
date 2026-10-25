@@ -33,10 +33,6 @@ public sealed class IssueMonthlyInvoicesTests : IClassFixture<DomoraWebApplicati
         await using var scope = _factory.Services.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<DomoraDbContext>();
 
-        await dbContext.Database.ExecuteSqlRawAsync(
-            "TRUNCATE TABLE \"Invoices\", \"Leases\", \"Units\", \"Properties\", \"OrganizationMemberships\", \"Organizations\", \"Users\" RESTART IDENTITY CASCADE;"
-        );
-
         dbContext.ChangeTracker.Clear();
 
         var organizationContext = scope.ServiceProvider.GetRequiredService<IOrganizationContext>();
@@ -104,14 +100,25 @@ public sealed class IssueMonthlyInvoicesTests : IClassFixture<DomoraWebApplicati
 
         // 3. Assert - Verify Data Integrity inside the Database
         // Clear EF Core tracking caches to force a direct, true read from PostgreSQL tables
-        dbContext.ChangeTracker.Clear();
+        dbContext.ChangeTracker.Clear();   
+
+        organizationContext.Set(organization.Id);
+
+        await using (var transaction =
+            await dbContext.Database.BeginTransactionAsync())
+        {     
 
         var generatedInvoices = await dbContext.Invoices
             .Where(i => i.LeaseId == lease.Id)
             .ToListAsync();
 
         // Verify exactly two distinct utility invoices exist for this billing month cycle
-        Assert.Equal(2, generatedInvoices.Count);
+        Assert.True(
+            generatedInvoices.Count == 2,
+            $"Expected 2 invoices but found {generatedInvoices.Count}. " +
+            $"Types: {string.Join(", ", generatedInvoices.Select(i => i.Type))}"
+        );
+        // Assert.Equal(2, generatedInvoices.Count);
         
         var rentInvoice = generatedInvoices.Single(i => i.Type == InvoiceType.Rent);
         var garbageInvoice = generatedInvoices.Single(i => i.Type == InvoiceType.Garbage);
@@ -122,8 +129,8 @@ public sealed class IssueMonthlyInvoicesTests : IClassFixture<DomoraWebApplicati
         Assert.Equal(InvoiceStatus.Pending, garbageInvoice.Status);
         Assert.Equal(new DateOnly(2026, 11, 5), rentInvoice.DueDate); // Stamped due by the 5th!
 
-        dbContext.ChangeTracker.Clear();
-        
+        await transaction.CommitAsync();
+        }        
         // 4. Act - Fire Request 2 (Simulate an accidental background double-run)
         var secondResponse = await client.PostAsync(
             $"/api/test/trigger-monthly-billing?date={targetSimulationDate}", 
@@ -141,8 +148,17 @@ public sealed class IssueMonthlyInvoicesTests : IClassFixture<DomoraWebApplicati
         // THE IDEMPOTENCY TRIUMPH: Zero new invoices are generated on the re-run pass!
         Assert.Equal(0, secondResponseData!.TotalInvoicesGenerated);
 
-        var postRunInvoicesCount = await dbContext.Invoices.CountAsync(i => i.LeaseId == lease.Id);
+        await using (var transaction =
+            await dbContext.Database.BeginTransactionAsync())
+        {  
+
+        var postRunInvoicesCount = 
+            await dbContext.Invoices.CountAsync(i => i.LeaseId == lease.Id);
+
         Assert.Equal(2, postRunInvoicesCount); // Total invoice footprint remains strictly 2.
+
+        await transaction.CommitAsync();
+        }
     }
 
     private sealed record BillingSimulationResponse(

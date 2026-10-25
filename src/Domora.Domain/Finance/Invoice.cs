@@ -8,6 +8,8 @@ public class Invoice
 {
     public Guid Id { get; }
 
+    public Guid OrganizationId { get; }
+
     public Guid LeaseId { get; }
 
     public Money Amount { get; }
@@ -27,6 +29,7 @@ public class Invoice
 
     private Invoice(
         Guid id, 
+        Guid organizationId,
         Guid leaseId, 
         Money amount, 
         DateOnly dueDate, 
@@ -35,12 +38,22 @@ public class Invoice
         )
     {
         if (id == Guid.Empty)
-            throw new DomainValidationException("Invoice ID is required.");
+            throw new DomainValidationException(
+                "Invoice ID is required."
+            );
+
+        if (organizationId == Guid.Empty)
+            throw new DomainValidationException(
+                "Organization ID is required."
+            );
 
         if (leaseId == Guid.Empty)
-            throw new DomainValidationException("Lease ID is required.");
+            throw new DomainValidationException(
+                "Lease ID is required."
+            );
 
         Id = id;
+        OrganizationId = organizationId;
         LeaseId = leaseId;
         Amount = amount;
         DueDate = dueDate;
@@ -50,6 +63,7 @@ public class Invoice
     }   
 
     public static Invoice Create(
+        Guid organizationId,
         Guid leaseId,
         InvoiceType type,
         Money amount,
@@ -58,6 +72,7 @@ public class Invoice
     {
         return new Invoice(
             Guid.NewGuid(),
+            organizationId,
             leaseId,
             amount,
             dueDate,

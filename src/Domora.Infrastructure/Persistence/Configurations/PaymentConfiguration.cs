@@ -12,6 +12,10 @@ public sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.HasKey(x => x.Id);
 
         builder
+            .Property(p => p.OrganizationId)
+            .IsRequired();
+
+        builder
             .OwnsOne(p => p.TotalAmount, money =>
             {
                 money.Property(m => m.Amount)

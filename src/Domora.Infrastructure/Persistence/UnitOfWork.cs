@@ -21,21 +21,38 @@ public sealed class UnitOfWork : IUnitOfWork
         _dbContext = dbContext;
         _organizationContext = organizationContext;
     }
-
+    
     public async Task SaveChangesAsync(
         CancellationToken cancellationToken
     )
     {
         try
         {
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            // Reuse an existing transaction if the caller already owns one.
+            // Otherwise, create an explicit transaction so the RLS interceptor
+            // can apply the organization context before database writes.
+            if (_dbContext.Database.CurrentTransaction is null)
+            {
+                await using var transaction =
+                    await _dbContext.Database.BeginTransactionAsync(
+                        cancellationToken);
+
+                await _dbContext.SaveChangesAsync(cancellationToken);
+
+                await transaction.CommitAsync(cancellationToken);
+            }
+            else
+            {
+                // The existing transaction already passed through the
+                // transaction-start interceptor.
+                await _dbContext.SaveChangesAsync(cancellationToken);
+            }
         }
         catch (DbUpdateConcurrencyException ex)
         {
             throw new ConcurrencyException(
                 "The resource was modified by another operation. Please reload and try again.",
-                ex
-            );
+                ex);
         }
         catch (DbUpdateException ex)
             when (TryGetPostgresException(ex, out var postgresException)
@@ -44,6 +61,7 @@ public sealed class UnitOfWork : IUnitOfWork
             throw MapUniqueConstraintViolation(postgresException, ex);
         }
     }
+
 
     private static bool TryGetPostgresException(
         DbUpdateException exception,

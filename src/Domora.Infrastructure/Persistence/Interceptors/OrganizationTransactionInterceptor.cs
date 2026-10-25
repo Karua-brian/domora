@@ -1,6 +1,7 @@
 using System.Data.Common;
 using Domora.Application.Common.Context;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Logging;
 using Npgsql;
 
 namespace Domora.Infrastructure.Persistence.Interceptors;
@@ -8,12 +9,16 @@ namespace Domora.Infrastructure.Persistence.Interceptors;
 public sealed class OrganizationTransactionInterceptor : DbTransactionInterceptor
 {
     private readonly IOrganizationContext _organizationContext;
+    // private readonly ILogger<OrganizationTransactionInterceptor> _logger;
+
 
     public OrganizationTransactionInterceptor(
         IOrganizationContext organizationContext
+        // ILogger<OrganizationTransactionInterceptor> logger
     )
     {
         _organizationContext = organizationContext;
+        // _logger = logger;
     }
 
     public override async ValueTask<DbTransaction> TransactionStartedAsync(
@@ -24,6 +29,11 @@ public sealed class OrganizationTransactionInterceptor : DbTransactionIntercepto
     )
     {
         var organizationId = _organizationContext.OrganizationId;
+
+        // _logger.LogInformation(
+        //     "RLS transaction started. OrganizationId: {OrganizationId}",
+        //     organizationId
+        // );
 
         if (organizationId == Guid.Empty)
         {
@@ -58,6 +68,19 @@ public sealed class OrganizationTransactionInterceptor : DbTransactionIntercepto
         );
 
         await command.ExecuteNonQueryAsync(cancellationToken);
+
+        await using var verifyCommand = npgsqlConnection.CreateCommand();
+            verifyCommand.Transaction = npgsqlTransaction;
+            verifyCommand.CommandText =
+                "SELECT current_setting('app.organization_id', true)";
+
+        var activeOrganizationId =
+                await verifyCommand.ExecuteScalarAsync(cancellationToken);
+
+        // _logger.LogInformation(
+        //     "Organization context inside transaction: {OrganizationId}",
+        //     activeOrganizationId
+        // );
 
         return await base.TransactionStartedAsync(
             connection,

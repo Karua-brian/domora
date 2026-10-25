@@ -224,7 +224,7 @@ public sealed class RegisterLeaseConcurrencyTests
 
         var handlerA =
             new RegisterLeaseHandler(
-                new LeaseRepository(contextA),
+                new LeaseRepository(contextA, organizationContext),
                 unitRepositoryA,
                 new UnitOfWork(
                     contextA,
@@ -232,7 +232,7 @@ public sealed class RegisterLeaseConcurrencyTests
 
         var handlerB =
             new RegisterLeaseHandler(
-                new LeaseRepository(contextB),
+                new LeaseRepository(contextB, organizationContext),
                 unitRepositoryB,
                 new UnitOfWork(
                     contextB,

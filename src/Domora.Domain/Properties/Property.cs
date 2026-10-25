@@ -3,9 +3,6 @@ namespace Domora.Domain.Properties;
 using Domora.Domain.Properties.ValueObjects;
 using Domora.Domain.Common.Exceptions;
 
-
-// Represents a physical real estate asset managed by an Organization.
-// Business rules and relationships will be added only as they are discovered.
 public class Property
 {
     public Guid Id { get; }

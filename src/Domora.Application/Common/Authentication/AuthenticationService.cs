@@ -34,9 +34,9 @@ public sealed class AuthenticationService : IAuthenticationService
         );
 
         if (user is null)
-            throw new NotFoundException(
-                $"User with email '{email}' not found."
-            );
+        {
+            return null;
+        }
 
         if (!_passwordHasher.Verify(
                 password,

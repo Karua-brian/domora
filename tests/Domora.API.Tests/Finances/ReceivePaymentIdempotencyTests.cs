@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using Domora.API.Tests.Infrastructure;
+using Domora.Application.Common.Context;
 using Domora.Infrastructure.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -52,11 +53,18 @@ public sealed class ReceivePaymentIdempotencyTests : IClassFixture<DomoraWebAppl
             paymentRequestPayload
         );
         
-        // Assert Request 1 passes the entry pipeline cleanly
-        Assert.Equal(
-            HttpStatusCode.Created, 
-            firstResponse.StatusCode
+        var responseBody = await firstResponse.Content.ReadAsStringAsync();
+
+        Assert.True(
+            firstResponse.StatusCode == HttpStatusCode.Created,
+            $"Expected Created but received {(int)firstResponse.StatusCode} " +
+            $"({firstResponse.StatusCode}). Response: {responseBody}"
         );
+        // // Assert Request 1 passes the entry pipeline cleanly
+        // Assert.Equal(
+        //     HttpStatusCode.Created, 
+        //     firstResponse.StatusCode
+        // );
         
         var firstPayment = await firstResponse.Content
             .ReadFromJsonAsync<PaymentTestResponse>();

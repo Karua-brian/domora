@@ -34,6 +34,9 @@ namespace Domora.Infrastructure.Migrations
                     b.Property<Guid>("LeaseId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text");
@@ -47,6 +50,10 @@ namespace Domora.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "Id")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Invoices_OrganizationId_Id");
 
                     b.HasIndex("LeaseId", "Type", "DueDate")
                         .IsUnique()

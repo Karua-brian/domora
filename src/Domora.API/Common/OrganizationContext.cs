@@ -7,8 +7,7 @@
         public const string ItemKey =
             "Domora.OrganizationContext.OrganizationId";
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ThreadLocal<Guid> _backgroundOrganizationId = new(() => Guid.Empty);
-
+        private readonly AsyncLocal<Guid> _backgroundOrganizationId = new();
         public OrganizationContext(
             IHttpContextAccessor httpContextAccessor)
         {
