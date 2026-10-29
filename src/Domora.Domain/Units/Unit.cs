@@ -64,12 +64,21 @@ public class Unit
 
     public void Occupy()
     {
+        if (Status != OccupancyStatus.Vacant)
+            throw new ResourceConflictException(
+                "Only vacant units can be occupied.");
+
         Status = OccupancyStatus.Occupied;
         Version = Guid.NewGuid();
     }
 
     public void Vacate()
     {
+        if (Status != OccupancyStatus.Occupied)
+            throw new ResourceConflictException(
+                "Only occupied units can be vacated."
+            );
+            
         Status = OccupancyStatus.Vacant;
         Version = Guid.NewGuid();
     }

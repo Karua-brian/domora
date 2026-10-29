@@ -30,6 +30,7 @@ public sealed class RegisterPropertyHandler
         CancellationToken cancellationToken
     )
     {
+        
         var organizationId = _organizationContext.OrganizationId;
 
         var propertyName = PropertyName.Create(command.Name);

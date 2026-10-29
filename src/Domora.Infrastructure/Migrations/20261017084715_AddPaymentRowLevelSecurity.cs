@@ -27,7 +27,7 @@ namespace Domora.Infrastructure.Migrations
             """);
 
             migrationBuilder.Sql("""
-                ALTER TABLE "Payments" 
+                ALTER TABLE "Payments"
                 FORCE ROW LEVEL SECURITY;
             """);
         }
@@ -38,6 +38,9 @@ namespace Domora.Infrastructure.Migrations
             migrationBuilder.Sql("""
             DROP POLICY IF EXISTS "Payments_OrganizationIsolation"
             ON "Payments";
+
+            ALTER TABLE "Payments" 
+                NO FORCE ROW LEVEL SECURITY;
 
             ALTER TABLE "Payments"
             DISABLE ROW LEVEL SECURITY;

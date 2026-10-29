@@ -40,7 +40,10 @@ namespace Domora.Infrastructure.Migrations
             ON "Invoices";
 
             ALTER TABLE "Invoices"
-            NO ROW LEVEL SECURITY;
+            NO FORCE ROW LEVEL SECURITY;
+
+            ALTER TABLE "Invoices"
+            DISABLE ROW LEVEL SECURITY;
             """);
         }
     }

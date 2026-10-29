@@ -65,13 +65,6 @@ public sealed class ReceivePaymentHandler
                 command.Reference
             );
 
-            _logger.LogInformation(
-                "Creating payment. Context organization: {ContextOrganizationId}; " +
-                "Payment organization: {PaymentOrganizationId}",
-                organizationId,
-                payment.OrganizationId
-            );
-
             await _paymentRepository.AddAsync(
                 payment,
                 cancellationToken

@@ -37,6 +37,6 @@ public sealed class PaymentAllocationsController : ControllerBase
             cancellationToken
         );
 
-        return Created($"api/finances/payment-allocations/{response.Id}", response);
+        return Created($"api/finances/payment-allocations/{response.PaymentId}", response);
     }
 }

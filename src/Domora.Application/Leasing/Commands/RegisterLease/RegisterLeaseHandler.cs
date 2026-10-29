@@ -32,19 +32,26 @@ public sealed class RegisterLeaseHandler
         CancellationToken cancellationToken
         )
     {
-        // Fetch the physical asset item
+        await using var transaction = 
+            await _unitOfWork.BeginTransactionAsync(
+                cancellationToken
+            );
+
         var unit = await _unitRepository.GetByIdAsync(
             command.UnitId,
             cancellationToken
         );
         if (unit is null)
-            throw new NotFoundException("Unit not found.");
+            throw new NotFoundException(
+                "Unit not found."
+            );
 
         // Prevent overlapping double-leasing
         var isAlreadyLeased = await _leaseRepository.HasActiveLeaseAsync(
             unit.Id,
             cancellationToken
         );
+
         if (isAlreadyLeased)
             throw new ResourceConflictException(
                 "Unit is already leased."
@@ -67,7 +74,19 @@ public sealed class RegisterLeaseHandler
             cancellationToken
         );
 
+        try 
+        {
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (ResourceConflictException ex)
+        {
+            throw new ConcurrencyException(
+                "The unit was leased by another operation before this registration completed.",
+                ex
+            );
+        }
+
+        await transaction.CommitAsync();
 
         return new RegisterLeaseResponse(
             lease.Id,
@@ -79,5 +98,6 @@ public sealed class RegisterLeaseHandler
             lease.Status,
             lease.Version
         );
+
     } 
 }

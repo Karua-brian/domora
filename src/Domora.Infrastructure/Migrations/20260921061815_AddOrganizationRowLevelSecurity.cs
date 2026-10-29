@@ -33,7 +33,8 @@ namespace Domora.Infrastructure.Migrations
             """);
 
             migrationBuilder.Sql("""
-            ALTER TABLE "Properties" FORCE ROW LEVEL SECURITY;
+            ALTER TABLE "Properties" 
+            FORCE ROW LEVEL SECURITY;
             """);
         }
 
@@ -43,6 +44,9 @@ namespace Domora.Infrastructure.Migrations
             migrationBuilder.Sql("""
             DROP POLICY IF EXISTS "Properties_OrganizationIsolation"
             ON "Properties";
+
+            ALTER TABLE "Properties" 
+            NO FORCE ROW LEVEL SECURITY;
 
             ALTER TABLE "Properties"
             DISABLE ROW LEVEL SECURITY;

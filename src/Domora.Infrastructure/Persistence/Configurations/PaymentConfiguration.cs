@@ -12,6 +12,14 @@ public sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.HasKey(x => x.Id);
 
         builder
+            .HasAlternateKey(x => new
+            {
+                x.OrganizationId,
+                x.Id
+            })
+            .HasName("AK_Payments_OrganizationId_Id");
+
+        builder
             .Property(p => p.OrganizationId)
             .IsRequired();
 

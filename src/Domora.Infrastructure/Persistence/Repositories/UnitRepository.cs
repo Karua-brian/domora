@@ -36,12 +36,14 @@ public sealed class UnitRepository : IUnitRepository
             );
     }
 
-    public async Task UpdateAsync(
+    public Task UpdateAsync(
         Unit unit, 
         CancellationToken cancellationToken
     )
     {
         _dbContext.Units.Update(unit);
+
+        return Task.CompletedTask;
 
     }
 }

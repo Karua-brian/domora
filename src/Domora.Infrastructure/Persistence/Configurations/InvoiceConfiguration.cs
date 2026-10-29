@@ -66,12 +66,11 @@ public sealed class InvoiceConfigurations : IEntityTypeConfiguration<Invoice>
             .IsUnique();
 
         builder
-            .HasIndex(i => new
+            .HasAlternateKey(i => new
             {
                 i.OrganizationId,
                 i.Id
             })
-            .IsUnique()
-            .HasDatabaseName("UX_Invoices_OrganizationId_Id");
+            .HasName("AK_Invoices_OrganizationId_Id");
     }
 }

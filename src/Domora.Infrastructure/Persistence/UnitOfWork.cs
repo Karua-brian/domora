@@ -84,6 +84,9 @@ public sealed class UnitOfWork : IUnitOfWork
         {
             "IX_Leases_UnitId" =>
                 "An active lease already exists for this unit.",
+
+            "UX_Leases_UnitId_Active" =>
+                "The unit was leased by another operation before this registration completed.",
                 
             "UX_Invoices_LeaseId_Type_DueDate" =>
                 "An invoice of this type has already been generated for this lease period.",

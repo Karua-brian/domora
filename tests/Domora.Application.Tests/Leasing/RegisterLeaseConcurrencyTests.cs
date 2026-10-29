@@ -1,4 +1,5 @@
 using Domora.Application.Common.Context;
+using Domora.Application.Common.Exceptions;
 using Domora.Application.Leasing.Commands.RegisterLease;
 using Domora.Domain.Common;
 using Domora.Domain.Common.Exceptions;
@@ -19,7 +20,6 @@ namespace Domora.Application.Tests.Leasing;
 
 public sealed class RegisterLeaseConcurrencyTests
 {
-    private readonly DbContextOptions<DomoraDbContext> _options;
     private readonly string _connectionString;
 
     public RegisterLeaseConcurrencyTests()
@@ -28,13 +28,8 @@ public sealed class RegisterLeaseConcurrencyTests
             Environment.GetEnvironmentVariable("DomoraTest")
             ?? throw new InvalidOperationException(
                 "DomoraTest connection string is not configured.");
-
-        _options = new DbContextOptionsBuilder<DomoraDbContext>()
-            .UseNpgsql(_connectionString)
-            .Options;
     }
 
-    // Organization context
     private sealed class TestOrganizationContext : IOrganizationContext
     {
         public Guid OrganizationId { get; private set; }
@@ -49,9 +44,7 @@ public sealed class RegisterLeaseConcurrencyTests
         }
     }
 
-    private async Task ExecuteAsOrganizationContextAsync(
-        Guid organizationId,
-        Func<DomoraDbContext, Task> action)
+    private DbContextOptions<DomoraDbContext> CreateOptions(Guid organizationId)
     {
         var organizationContext =
             new TestOrganizationContext(organizationId);
@@ -60,21 +53,10 @@ public sealed class RegisterLeaseConcurrencyTests
             new OrganizationTransactionInterceptor(
                 organizationContext);
 
-        var options =
-            new DbContextOptionsBuilder<DomoraDbContext>()
-                .UseNpgsql(_connectionString)
-                .AddInterceptors(interceptor)
-                .Options;
-
-        await using var context =
-            new DomoraDbContext(options);
-
-        await using var transaction =
-            await context.Database.BeginTransactionAsync();
-
-        await action(context);
-
-        await transaction.CommitAsync();
+        return new DbContextOptionsBuilder<DomoraDbContext>()
+            .UseNpgsql(_connectionString)
+            .AddInterceptors(interceptor)
+            .Options;
     }
 
     // Test data
@@ -98,23 +80,34 @@ public sealed class RegisterLeaseConcurrencyTests
             UnitType.Bedsitter
         );
 
-        await ExecuteAsOrganizationContextAsync(
-            organization.Id,
-            async context =>
-            {
-                await context.Organizations.AddAsync(
-                    organization);
+        await using var context = new DomoraDbContext(
+            CreateOptions(organization.Id)
+        );
 
-                await context.Properties.AddAsync(
-                    property);
-
-                await context.Units.AddAsync(
-                    unit);
-
-                await context.SaveChangesAsync();
-            });
+        await context.Organizations.AddAsync(organization);
+        await context.Properties.AddAsync(property);
+        await context.Units.AddAsync(unit);
+        await context.SaveChangesAsync();
 
         return (unit.Id, organization.Id);
+    }
+
+    private sealed class AsyncGate
+    {
+        private readonly TaskCompletionSource<bool> _release =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        private int _arrivals;
+
+        public async Task WaitAsync()
+        {
+            if (Interlocked.Increment(ref _arrivals) == 2)
+            {
+                _release.TrySetResult(true);
+            }
+
+            await _release.Task;
+        }
     }
 
     // Concurrency coordination
@@ -122,14 +115,14 @@ public sealed class RegisterLeaseConcurrencyTests
         : IUnitRepository
     {
         private readonly IUnitRepository _inner;
-        private readonly Barrier _barrier;
+        private readonly AsyncGate _gate;
 
         public CoordinatedUnitRepository(
             IUnitRepository inner,
-            Barrier barrier)
+            AsyncGate gate)
         {
             _inner = inner;
-            _barrier = barrier;
+            _gate = gate;
         }
 
         public Task AddAsync(
@@ -151,8 +144,7 @@ public sealed class RegisterLeaseConcurrencyTests
 
             // Both handlers must reach this point before either
             // continues. This creates the intended race.
-            _barrier.SignalAndWait(
-                cancellationToken);
+            await _gate.WaitAsync();
 
             return unit;
         }
@@ -203,28 +195,28 @@ public sealed class RegisterLeaseConcurrencyTests
         var tenantB = Guid.NewGuid();
 
         await using var contextA =
-            new DomoraDbContext(_options);
+            new DomoraDbContext(CreateOptions(organizationId));
 
         await using var contextB =
-            new DomoraDbContext(_options);
+            new DomoraDbContext(CreateOptions(organizationId));
 
-        var barrier = new Barrier(2);
+        var gate = new AsyncGate();
 
         var unitRepositoryA =
             new CoordinatedUnitRepository(
                 new UnitRepository(contextA),
-                barrier);
+                gate);
 
         var unitRepositoryB =
             new CoordinatedUnitRepository(
                 new UnitRepository(contextB),
-                barrier);
+                gate);
 
         var organizationContext = new TestOrganizationContext(organizationId);
 
         var handlerA =
             new RegisterLeaseHandler(
-                new LeaseRepository(contextA, organizationContext),
+                new LeaseRepository(contextA),
                 unitRepositoryA,
                 new UnitOfWork(
                     contextA,
@@ -232,7 +224,7 @@ public sealed class RegisterLeaseConcurrencyTests
 
         var handlerB =
             new RegisterLeaseHandler(
-                new LeaseRepository(contextB, organizationContext),
+                new LeaseRepository(contextB),
                 unitRepositoryB,
                 new UnitOfWork(
                     contextB,
@@ -301,17 +293,16 @@ public sealed class RegisterLeaseConcurrencyTests
         Assert.NotNull(
             capturedException
         );
-        Assert.IsType<ResourceConflictException>(
+        Assert.IsType<ConcurrencyException>(
             capturedException
-        );
-            Assert.Equal(
-            "An active lease already exists for this unit.",
-            capturedException.Message
         );
 
         // Assert: database state
         await using var verificationContext =
-            new DomoraDbContext(_options);
+            new DomoraDbContext(CreateOptions(organizationId));
+
+        await using var verificationTransaction =
+            await verificationContext.Database.BeginTransactionAsync();
 
         var activeLeases =
             await verificationContext.Leases
@@ -330,5 +321,17 @@ public sealed class RegisterLeaseConcurrencyTests
         Assert.Equal(
             OccupancyStatus.Occupied,
             persistedUnit.Status);
+
+        var leasesForUnit =
+            await verificationContext.Leases
+                .Where(lease => lease.UnitId == unitId)
+                .ToListAsync();
+
+        Assert.Single(leasesForUnit);
+        Assert.Equal(
+            LeaseStatus.Active,
+            leasesForUnit[0].Status);
+
+        await verificationTransaction.CommitAsync();
     }
 }

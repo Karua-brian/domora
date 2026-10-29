@@ -37,30 +37,19 @@ public sealed class EndLeaseIntegrationTests
             .Options;
     }
 
-    private async Task ExecuteAsOrganizationContextAsync(
-        Guid organizationId,
-        Func<DomoraDbContext, Task> action
-    )
+     private DbContextOptions<DomoraDbContext> CreateOptions(Guid organizationId)
     {
-        var organizationContext = new TestOrganizationContext(organizationId);
+        var organizationContext =
+            new TestOrganizationContext(organizationId);
 
-        var interceptor = new OrganizationTransactionInterceptor(
-            organizationContext
-        );
+        var interceptor =
+            new OrganizationTransactionInterceptor(
+                organizationContext);
 
-        var options = new DbContextOptionsBuilder<DomoraDbContext>()
+        return new DbContextOptionsBuilder<DomoraDbContext>()
             .UseNpgsql(_connectionString)
             .AddInterceptors(interceptor)
             .Options;
-
-        await using var context = new DomoraDbContext(options);
-
-        await using var transaction =
-            await context.Database.BeginTransactionAsync();
-
-        await action(context);
-
-        await transaction.CommitAsync();
     }
 
     private sealed class TestOrganizationContext : IOrganizationContext
@@ -79,8 +68,6 @@ public sealed class EndLeaseIntegrationTests
 
     private async Task<(Guid organizationId, Guid UnitId, Guid LeaseId)> CreateTestActiveLeaseAsync()
     {
-        await using var context = new DomoraDbContext(_options);
-
         var organization = Organization.Register(
             OrganizationName.Create($"EndLease Org {Guid.NewGuid():N}")
         );
@@ -103,17 +90,21 @@ public sealed class EndLeaseIntegrationTests
             new Money(15000m, "KES")
         );
 
-        await ExecuteAsOrganizationContextAsync(
-            organization.Id,
-            async ctx =>
-            {
-                await ctx.Organizations.AddAsync(organization);
-                await ctx.Properties.AddAsync(property);
-                await ctx.Units.AddAsync(unit);
-                await ctx.Leases.AddAsync(lease);
-                await ctx.SaveChangesAsync();
-            }
+        await using var context = new DomoraDbContext(
+            CreateOptions(organization.Id)
         );
+
+        await using var transaction = 
+            await context.Database.BeginTransactionAsync();
+
+        await context.Organizations.AddAsync(organization);
+        await context.Properties.AddAsync(property);
+        await context.Units.AddAsync(unit);
+        await context.Leases.AddAsync(lease);
+
+        await context.SaveChangesAsync();
+
+        await transaction.CommitAsync();
 
         return (organization.Id, unit.Id, lease.Id);
     }
@@ -242,10 +233,13 @@ public sealed class EndLeaseIntegrationTests
     [Fact]
     public async Task Created_active_lease_should_have_occupied_unit()
     {
-        var (_, unitId, _) =await CreateTestActiveLeaseAsync();
+        var (organizationId, unitId, _) =await CreateTestActiveLeaseAsync();
 
         await using var context =
-            new DomoraDbContext(_options);
+            new DomoraDbContext(CreateOptions(organizationId));
+
+        await using var transaction =
+            await context.Database.BeginTransactionAsync();
 
         var unit = await context.Units
             .SingleAsync(u => u.Id == unitId);
@@ -254,20 +248,25 @@ public sealed class EndLeaseIntegrationTests
             OccupancyStatus.Occupied,
             unit.Status
         );
+
+        await transaction.CommitAsync();
     }
 
     [Fact]
     public async Task Ending_active_lease_should_end_lease_and_vacate_unit()
     {
         // Arrange 
-        var (organizationId, unitId, leaseId) = await CreateTestActiveLeaseAsync();
+        var (organizationId, unitId, leaseId) = 
+            await CreateTestActiveLeaseAsync();
 
-        await using var context = new DomoraDbContext(_options);
+        await using var context = 
+            new DomoraDbContext(CreateOptions(organizationId));
 
-        var organizationContext = new TestOrganizationContext(organizationId);
+        var organizationContext = 
+            new TestOrganizationContext(organizationId);
 
         var handler = new EndLeaseHandler(
-            new LeaseRepository(context, organizationContext),
+            new LeaseRepository(context),
             new UnitRepository(context),
             new UnitOfWork(context, organizationContext)
         );
@@ -286,7 +285,11 @@ public sealed class EndLeaseIntegrationTests
         // Assert
         Assert.Equal(LeaseStatus.Ended, response.Status);
 
-        await using var verificationContext = new DomoraDbContext(_options);
+        await using var verificationContext = 
+            new DomoraDbContext(CreateOptions(organizationId));
+
+        await using var verificationTransaction =
+            await verificationContext.Database.BeginTransactionAsync();
 
         var persistedLease = await verificationContext.Leases
             .SingleAsync(l => l.Id == leaseId);
@@ -303,15 +306,22 @@ public sealed class EndLeaseIntegrationTests
             OccupancyStatus.Vacant,
             persistedUnit.Status
         );
+
+        await verificationTransaction.CommitAsync();
     }
 
     [Fact]
     public async Task Ending_already_ended_lease_should_fail()
     {
         // Arrange
+
         var (organizationId, _, leaseId) = await CreateTestActiveLeaseAsync();
 
-        await using var contextSetup = new DomoraDbContext(_options);
+        await using var contextSetup = 
+            new DomoraDbContext(CreateOptions(organizationId));
+
+        await using var setupTransaction =
+            await contextSetup.Database.BeginTransactionAsync();
 
         var preEndedLease = await contextSetup.Leases
             .SingleAsync(l => l.Id == leaseId);
@@ -324,12 +334,15 @@ public sealed class EndLeaseIntegrationTests
 
         await contextSetup.SaveChangesAsync();
 
-        await using var contextExecution = new DomoraDbContext(_options);
+        await setupTransaction.CommitAsync();
+
+        await using var contextExecution = 
+            new DomoraDbContext(CreateOptions(organizationId));
 
         var organizationContext = new TestOrganizationContext(organizationId);
 
         var handler = new EndLeaseHandler(
-            new LeaseRepository(contextExecution, organizationContext),
+            new LeaseRepository(contextExecution),
             new UnitRepository(contextExecution),
             new UnitOfWork(contextExecution, organizationContext)
         );
@@ -355,12 +368,13 @@ public sealed class EndLeaseIntegrationTests
         // Arrange
         var (organizationId, _, leaseId) = await CreateTestActiveLeaseAsync();
 
-        await using var context = new DomoraDbContext(_options);
+        await using var context = 
+            new DomoraDbContext(CreateOptions(organizationId));
 
         var organizationContext = new TestOrganizationContext(organizationId);
 
         var handler = new EndLeaseHandler(
-            new LeaseRepository(context, organizationContext),
+            new LeaseRepository(context),
             new UnitRepository(context),
             new UnitOfWork(context, organizationContext)
         );
@@ -388,8 +402,11 @@ public sealed class EndLeaseIntegrationTests
         // 1. Arrange
         var (organizationId, _, leaseId) = await CreateTestActiveLeaseAsync();
 
-        await using var contextA = new DomoraDbContext(_options);
-        await using var contextB = new DomoraDbContext(_options);
+        await using var contextA = 
+            new DomoraDbContext(CreateOptions(organizationId));
+
+        await using var contextB = 
+            new DomoraDbContext(CreateOptions(organizationId));
 
         var organizationContext =
             new TestOrganizationContext(organizationId);
@@ -404,13 +421,13 @@ public sealed class EndLeaseIntegrationTests
         // Wrap your real repositories with the async decorator
         var coordinatedRepoA = 
             new AsyncCoordinatedLeaseRepository(
-            new LeaseRepository(contextA, organizationContext), 
+            new LeaseRepository(contextA), 
             leaseBarrier
         );
 
         var coordinatedRepoB = 
             new AsyncCoordinatedLeaseRepository(
-            new LeaseRepository(contextB, organizationContext), 
+            new LeaseRepository(contextB), 
             leaseBarrier
         );
 
@@ -458,7 +475,10 @@ public sealed class EndLeaseIntegrationTests
         Assert.Equal(1, conflictFailures);
 
         await using var verificationContext = 
-            new DomoraDbContext(_options);
+            new DomoraDbContext(CreateOptions(organizationId));
+
+        await using var verificationTransaction = 
+            await verificationContext.Database.BeginTransactionAsync();
 
         var persistedLease = await verificationContext.Leases
             .SingleAsync(l => l.Id == leaseId);
@@ -475,6 +495,8 @@ public sealed class EndLeaseIntegrationTests
             OccupancyStatus.Vacant,
             persistedUnit.Status
         );
+
+        await verificationTransaction.CommitAsync();
 
     }
 

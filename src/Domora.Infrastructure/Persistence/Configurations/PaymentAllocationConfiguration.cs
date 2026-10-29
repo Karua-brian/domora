@@ -33,15 +33,37 @@ public sealed class PaymentAllocationConfiguration : IEntityTypeConfiguration<Pa
             });
 
         builder
+            .Property(a => a.OrganizationId)
+            .IsRequired();
+
+        builder
             .HasOne<Payment>()
             .WithMany()
-            .HasForeignKey(x => x.PaymentId)
+            .HasForeignKey(x => new
+            {
+                x.OrganizationId,
+                x.PaymentId   
+            })
+            .HasPrincipalKey(x => new
+            {
+                x.OrganizationId,
+                x.Id
+            })
             .OnDelete(DeleteBehavior.Restrict);
 
         builder
             .HasOne<Invoice>()
             .WithMany()
-            .HasForeignKey(x => x.InvoiceId)
+            .HasForeignKey(x => new
+            {
+                x.OrganizationId,
+                x.InvoiceId
+            })
+            .HasPrincipalKey(x => new
+            {
+                x.OrganizationId,
+                x.Id
+            })
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

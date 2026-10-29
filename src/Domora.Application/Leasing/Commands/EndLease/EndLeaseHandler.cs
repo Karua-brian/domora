@@ -31,46 +31,61 @@ public sealed class EndLeaseHandler
         CancellationToken cancellationToken
     )
     {
-        var lease = await _leaseRepository.GetByIdAsync(
-            command.LeaseId,
-            cancellationToken
-        );
+        await using var transaction = 
+            await _unitOfWork.BeginTransactionAsync();
 
-        if (lease is null)
-            throw new NotFoundException(
-                "Lease not found."
+        try
+        {    
+            var lease = await _leaseRepository.GetByIdAsync(
+                command.LeaseId,
+                cancellationToken
             );
 
-        if (lease.Status == LeaseStatus.Ended)
-            throw new ResourceConflictException(
-                "Lease has already ended."
+            if (lease is null)
+                throw new NotFoundException(
+                    "Lease not found."
+                );
+
+            if (lease.Status == LeaseStatus.Ended)
+                throw new ResourceConflictException(
+                    "Lease has already ended."
+                );
+
+            var unit = await _unitRepository.GetByIdAsync(
+                lease.UnitId,
+                cancellationToken
+            ) ?? throw new NotFoundException(
+                    "Unit not found."
+                );
+
+            lease.EndLease(command.EndDate);
+            unit.Vacate();
+
+            await _unitRepository.UpdateAsync(
+                unit,
+                cancellationToken
             );
 
-        var unit = await _unitRepository.GetByIdAsync(
-            lease.UnitId,
-            cancellationToken
-        ) ?? throw new NotFoundException(
-                "Unit not found."
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            await transaction.CommitAsync(cancellationToken);
+
+            return new EndLeaseResponse(
+                lease.Id,
+                lease.UnitId,
+                lease.TenantId,
+                lease.StartDate,
+                lease.EndDate!.Value,
+                lease.Status,
+                lease.Version
             );
-
-        lease.EndLease(command.EndDate);
-        unit.Vacate();
-
-        await _unitRepository.UpdateAsync(
-            unit,
-            cancellationToken
-        );
-
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-        return new EndLeaseResponse(
-            lease.Id,
-            lease.UnitId,
-            lease.TenantId,
-            lease.StartDate,
-            lease.EndDate!.Value,
-            lease.Status,
-            lease.Version
-        );
+        }
+        catch
+        {
+            await transaction.RollbackAsync(
+                cancellationToken
+            );
+            throw;
+        }
     }
 }

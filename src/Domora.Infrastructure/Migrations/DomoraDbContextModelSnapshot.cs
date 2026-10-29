@@ -17,7 +17,7 @@ namespace Domora.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.11")
+                .HasAnnotation("ProductVersion", "10.0.13")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -51,15 +51,14 @@ namespace Domora.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrganizationId", "Id")
-                        .IsUnique()
-                        .HasDatabaseName("UX_Invoices_OrganizationId_Id");
+                    b.HasAlternateKey("OrganizationId", "Id")
+                        .HasName("AK_Invoices_OrganizationId_Id");
 
                     b.HasIndex("LeaseId", "Type", "DueDate")
                         .IsUnique()
                         .HasDatabaseName("UX_Invoices_LeaseId_Type_DueDate");
 
-                    b.ToTable("Invoices");
+                    b.ToTable("Invoices", (string)null);
                 });
 
             modelBuilder.Entity("Domora.Domain.Finance.Payment", b =>
@@ -89,11 +88,14 @@ namespace Domora.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasAlternateKey("OrganizationId", "Id")
+                        .HasName("AK_Payments_OrganizationId_Id");
+
                     b.HasIndex("OrganizationId", "Reference")
                         .IsUnique()
                         .HasDatabaseName("UX_Payments_OrganizationId_Reference");
 
-                    b.ToTable("Payments");
+                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("Domora.Domain.Finance.PaymentAllocation", b =>
@@ -105,16 +107,19 @@ namespace Domora.Infrastructure.Migrations
                     b.Property<Guid>("InvoiceId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("PaymentId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("InvoiceId");
+                    b.HasIndex("OrganizationId", "InvoiceId");
 
-                    b.HasIndex("PaymentId");
+                    b.HasIndex("OrganizationId", "PaymentId");
 
-                    b.ToTable("PaymentAllocations");
+                    b.ToTable("PaymentAllocations", (string)null);
                 });
 
             modelBuilder.Entity("Domora.Domain.Leasing.Lease", b =>
@@ -149,7 +154,7 @@ namespace Domora.Infrastructure.Migrations
                         .IsUnique()
                         .HasFilter("\"Status\" = 'Active'");
 
-                    b.ToTable("Leases");
+                    b.ToTable("Leases", (string)null);
                 });
 
             modelBuilder.Entity("Domora.Domain.Organizations.Organization", b =>
@@ -169,7 +174,7 @@ namespace Domora.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("UX_Organizations_Name");
 
-                    b.ToTable("Organizations");
+                    b.ToTable("Organizations", (string)null);
                 });
 
             modelBuilder.Entity("Domora.Domain.Organizations.OrganizationMembership", b =>
@@ -218,7 +223,7 @@ namespace Domora.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("UX_Properties_OrganizationId_Name");
 
-                    b.ToTable("Properties");
+                    b.ToTable("Properties", (string)null);
                 });
 
             modelBuilder.Entity("Domora.Domain.Units.Unit", b =>
@@ -252,7 +257,7 @@ namespace Domora.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("UX_Units_ProprtyId_Number");
 
-                    b.ToTable("Units");
+                    b.ToTable("Units", (string)null);
                 });
 
             modelBuilder.Entity("Domora.Domain.Users.User", b =>
@@ -305,7 +310,7 @@ namespace Domora.Infrastructure.Migrations
 
                             b1.HasKey("InvoiceId");
 
-                            b1.ToTable("Invoices");
+                            b1.ToTable("Invoices", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("InvoiceId");
@@ -335,7 +340,7 @@ namespace Domora.Infrastructure.Migrations
 
                             b1.HasKey("PaymentId");
 
-                            b1.ToTable("Payments");
+                            b1.ToTable("Payments", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("PaymentId");
@@ -359,7 +364,7 @@ namespace Domora.Infrastructure.Migrations
 
                             b1.HasKey("PaymentId");
 
-                            b1.ToTable("Payments");
+                            b1.ToTable("Payments", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("PaymentId");
@@ -376,13 +381,15 @@ namespace Domora.Infrastructure.Migrations
                 {
                     b.HasOne("Domora.Domain.Finance.Invoice", null)
                         .WithMany()
-                        .HasForeignKey("InvoiceId")
+                        .HasForeignKey("OrganizationId", "InvoiceId")
+                        .HasPrincipalKey("OrganizationId", "Id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Domora.Domain.Finance.Payment", null)
                         .WithMany()
-                        .HasForeignKey("PaymentId")
+                        .HasForeignKey("OrganizationId", "PaymentId")
+                        .HasPrincipalKey("OrganizationId", "Id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -404,7 +411,7 @@ namespace Domora.Infrastructure.Migrations
 
                             b1.HasKey("PaymentAllocationId");
 
-                            b1.ToTable("PaymentAllocations");
+                            b1.ToTable("PaymentAllocations", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("PaymentAllocationId");
@@ -440,7 +447,7 @@ namespace Domora.Infrastructure.Migrations
 
                             b1.HasKey("LeaseId");
 
-                            b1.ToTable("Leases");
+                            b1.ToTable("Leases", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("LeaseId");
