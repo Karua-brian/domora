@@ -1,3 +1,4 @@
+using Domora.Application.Common.Authorization;
 using Domora.Application.Common.Exceptions;
 using Domora.Application.Common.Persistence;
 using Domora.Domain.Common;
@@ -15,13 +16,15 @@ public sealed class AllocatePaymentHandler
     private readonly IInvoiceRepository _invoiceRepository;
     private readonly IPaymentAllocationRepository _paymentAllocationRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IFinancialAuthorization _financialAuthorization;
 
     public AllocatePaymentHandler(
         IPaymentRepository paymentRepository,
         ILeaseRepository leaseRepository,
         IInvoiceRepository invoiceRepository,
         IPaymentAllocationRepository paymentAllocationRepository,
-        IUnitOfWork unitOfWork
+        IUnitOfWork unitOfWork,
+        IFinancialAuthorization financialAuthorization
     )
     {
         _paymentRepository = paymentRepository;
@@ -29,6 +32,7 @@ public sealed class AllocatePaymentHandler
         _invoiceRepository = invoiceRepository;
         _paymentAllocationRepository = paymentAllocationRepository;
         _unitOfWork = unitOfWork;
+        _financialAuthorization = financialAuthorization;
     }
 
     public async Task<AllocatePaymentResponse> Handle(
@@ -36,6 +40,11 @@ public sealed class AllocatePaymentHandler
         CancellationToken cancellationToken
     )
     {
+        await _financialAuthorization.EnsureCanAsync(
+            FinancialCapability.AllocatePayments,
+            cancellationToken
+        );
+
         var allocationsCreated = new List<PaymentAllocationResponse>();
 
         await using var transaction = 
@@ -51,6 +60,7 @@ public sealed class AllocatePaymentHandler
         if (payment.Status == PaymentStatus.Voided)
             throw new ResourceConflictException("Cannot allocate a voided payment.");
         
+        // Check if the payment has enough unallocated funds to cover the requested allocation
         var allocatedToPaymentSoFar = await _paymentAllocationRepository
             .GetAllocatedAmountForPaymentAsync(
                 command.PaymentId,
@@ -58,6 +68,7 @@ public sealed class AllocatePaymentHandler
                 cancellationToken
             );
 
+        // Ensure the payment can be allocated with the requested amount
         payment.EnsureCanAllocate(
             command.AllocateAmount,
             allocatedToPaymentSoFar
@@ -98,10 +109,9 @@ public sealed class AllocatePaymentHandler
                 .GetAllocatedAmountForInvoiceAsync(
                     invoice.Id,
                     invoice.Amount.Currency,
-                    cancellationToken
-                );
-
+                    cancellationToken);
             var outstanding = invoice.GetOutstandingBalance(allocatedToInvoiceSoFar);
+            // If the invoice is already fully paid, skip to the next one
             if (outstanding.Amount <= 0)
                 continue;
 

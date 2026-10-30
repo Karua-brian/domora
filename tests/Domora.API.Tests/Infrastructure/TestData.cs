@@ -49,13 +49,14 @@ public static class TestData
         AddMembershipAsync(
             DomoraDbContext context,
             Guid userId,
-            Guid organizationId)
+            Guid organizationId,
+            OrganizationRole role = OrganizationRole.Owner)
     {
         var membership =
             OrganizationMembership.Create(
                 userId,
                 organizationId,
-                OrganizationRole.Owner
+                role
             );
 
         await context.OrganizationMemberships.AddAsync(

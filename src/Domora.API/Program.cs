@@ -88,6 +88,8 @@ builder.Services.AddScoped<IOrganizationContext, OrganizationContext>();
 
 builder.Services.AddScoped<IOrganizationAccess, OrganizationAccess>();
 
+builder.Services.AddScoped<IFinancialAuthorization, FinancialAuthorization>();
+
 // Interceptors
 builder.Services.AddScoped<OrganizationTransactionInterceptor>();
 

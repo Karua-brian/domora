@@ -1,3 +1,4 @@
+using Domora.Application.Common.Authorization;
 using Domora.Application.Common.Context;
 using Domora.Application.Common.Exceptions;
 using Domora.Application.Common.Persistence;
@@ -16,6 +17,7 @@ public sealed class VoidPaymentHandler
     private readonly IPaymentVoidRepository _paymentVoidRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IUserContext _userContext;
+    private readonly IFinancialAuthorization _financialAuthorization;
 
     public VoidPaymentHandler(
         IOrganizationContext organizationContext,
@@ -24,7 +26,8 @@ public sealed class VoidPaymentHandler
         IPaymentAllocationRepository paymentAllocationRepository,
         IPaymentVoidRepository paymentVoidRepository,
         IUserContext userContext,
-        IUnitOfWork unitOfWork
+        IUnitOfWork unitOfWork,
+        IFinancialAuthorization financialAuthorization
     )
     {
         _organizationContext = organizationContext;
@@ -34,6 +37,7 @@ public sealed class VoidPaymentHandler
         _paymentVoidRepository = paymentVoidRepository;
         _userContext = userContext;
         _unitOfWork = unitOfWork;
+        _financialAuthorization = financialAuthorization;
     }
 
     public async Task<VoidPaymentResponse> Handle(
@@ -41,6 +45,11 @@ public sealed class VoidPaymentHandler
         CancellationToken cancellationToken
     )
     {
+        await _financialAuthorization.EnsureCanAsync(
+            FinancialCapability.VoidPayments,
+            cancellationToken
+        );
+
         if (string.IsNullOrWhiteSpace(command.Reason))
             throw new DomainValidationException("A payment void reason is required.");
 

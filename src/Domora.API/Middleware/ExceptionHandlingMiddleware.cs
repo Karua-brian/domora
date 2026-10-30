@@ -61,6 +61,23 @@ public sealed class ExceptionHandlingMiddleware
                 "https://domora.app/problems/not-found-conflict"
             );
         }
+        catch (ForbiddenException ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "Authorization denied while processing {Method} {Path}.",
+                context.Request.Method,
+                context.Request.Path
+            );
+
+            await WriteErrorResponseAsync(
+                context,
+                StatusCodes.Status403Forbidden,
+                ex.Message,
+                "Forbidden",
+                "https://domora.app/problems/forbidden"
+            );
+        }
         catch (ResourceConflictException ex)
         {
             _logger.LogWarning(

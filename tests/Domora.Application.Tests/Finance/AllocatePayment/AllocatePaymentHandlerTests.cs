@@ -1,5 +1,6 @@
 
 using Domora.Application.Common.Context;
+using Domora.Application.Common.Authorization;
 using Domora.Application.Common.Exceptions;
 using Domora.Application.Finance.Commands.AllocatePayment;
 using Domora.Domain.Common;
@@ -23,6 +24,14 @@ namespace Domora.Application.Tests.Finance.Commands.AllocatePayment;
 
 public sealed class AllocatePaymentHandlerTests
 {
+    private sealed class AllowFinancialAuthorization : IFinancialAuthorization
+    {
+        public Task EnsureCanAsync(
+            FinancialCapability capability,
+            CancellationToken cancellationToken = default
+        ) => Task.CompletedTask;
+    }
+
     private readonly string _connectionString =
         Environment.GetEnvironmentVariable("DomoraTest")
         ?? throw new InvalidOperationException(
@@ -186,7 +195,8 @@ public sealed class AllocatePaymentHandlerTests
                 leaseRepository,
                 invoiceRepository,
                 paymentAllocationRepository,
-                unitOfWork
+                unitOfWork,
+                new AllowFinancialAuthorization()
             );
 
         var command =
@@ -329,7 +339,8 @@ public sealed class AllocatePaymentHandlerTests
             leaseRepository,
             invoiceRepository,
             paymentAllocationRepository,
-            unitOfWork
+            unitOfWork,
+            new AllowFinancialAuthorization()
         );
 
         var firstCommand = new AllocatePaymentCommand(
@@ -466,7 +477,8 @@ public sealed class AllocatePaymentHandlerTests
             leaseRepository,
             invoiceRepository,
             paymentAllocationRepository,
-            unitOfWork
+            unitOfWork,
+            new AllowFinancialAuthorization()
         );
 
         var command = new AllocatePaymentCommand(

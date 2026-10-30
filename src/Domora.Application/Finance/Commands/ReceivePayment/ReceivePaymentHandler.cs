@@ -1,3 +1,4 @@
+using Domora.Application.Common.Authorization;
 using Domora.Application.Common.Context;
 using Domora.Application.Common.Persistence;
 using Domora.Domain.Common.Exceptions;
@@ -13,18 +14,21 @@ public sealed class ReceivePaymentHandler
     private readonly IPaymentRepository _paymentRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<ReceivePaymentHandler> _logger;
+    private readonly IFinancialAuthorization _financialAuthorization;
 
     public ReceivePaymentHandler(
         IOrganizationContext organizationContext,
         IPaymentRepository paymentRepository,
         IUnitOfWork unitOfWork,
-        ILogger<ReceivePaymentHandler> logger
+        ILogger<ReceivePaymentHandler> logger,
+        IFinancialAuthorization financialAuthorization
     )
     {
         _organizationContext = organizationContext;
         _paymentRepository = paymentRepository;
         _unitOfWork = unitOfWork;
         _logger = logger;
+        _financialAuthorization = financialAuthorization;
     }
 
     public async Task<ReceivePaymentResponse> Handle(
@@ -32,6 +36,12 @@ public sealed class ReceivePaymentHandler
         CancellationToken cancellationToken
     )
     {
+        // Ensure the user has permission to receive payments
+        await _financialAuthorization.EnsureCanAsync(
+            FinancialCapability.ReceivePayments,
+            cancellationToken
+        );
+
         var organizationId = _organizationContext.OrganizationId;
 
         try 

@@ -1,3 +1,4 @@
+using Domora.Application.Common.Authorization;
 using Domora.Application.Common.Context;
 using Domora.Application.Common.Exceptions;
 using Domora.Application.Common.Persistence;
@@ -12,18 +13,21 @@ public sealed class IssueInvoiceHandler
     private readonly IInvoiceRepository _invoiceRepository;
     private readonly ILeaseRepository _leaseRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IFinancialAuthorization _financialAuthorization;
 
     public IssueInvoiceHandler(
         IOrganizationContext organizationContext,
         IInvoiceRepository invoiceRepository,
         ILeaseRepository leaseRepository,
-        IUnitOfWork unitOfWork
+        IUnitOfWork unitOfWork,
+        IFinancialAuthorization financialAuthorization
     )
     {
         _organizationContext = organizationContext;
         _invoiceRepository = invoiceRepository;
         _leaseRepository = leaseRepository;
         _unitOfWork = unitOfWork;
+        _financialAuthorization = financialAuthorization;
     }
 
     public async Task<IssueInvoiceResponse> Handle(
@@ -31,6 +35,16 @@ public sealed class IssueInvoiceHandler
         CancellationToken cancellationToken
     )
     {
+        // Ensure the user has permission to issue invoices
+        await _financialAuthorization.EnsureCanAsync(
+            FinancialCapability.IssueInvoices,
+            cancellationToken
+        );
+
+        await using var transaction = await _unitOfWork.BeginTransactionAsync(
+            cancellationToken
+        );
+
         var lease = await _leaseRepository.GetByIdAsync(
             command.LeaseId,
             cancellationToken
@@ -53,6 +67,7 @@ public sealed class IssueInvoiceHandler
         );
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return new IssueInvoiceResponse(
             invoice.Id,

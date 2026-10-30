@@ -3,6 +3,6 @@ namespace Domora.Domain.Organizations.Enums;
 public enum OrganizationRole
 {
     Owner = 1,
-    
-    Member = 2
+    Member = 2,
+    Finance = 3
 }
