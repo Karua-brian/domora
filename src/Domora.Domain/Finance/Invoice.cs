@@ -146,32 +146,19 @@ public class Invoice
         return actualAppliedAmount;
     }
 
-    public void ReverseAllocation(
-        Money allocatedAmountToReturn,
-        Money totalAllocatedToInvoiceSoFar
-    )
+    public void RecalculatePaymentStatus(Money effectiveAllocatedAmount)
     {
-        if (Amount.Currency != allocatedAmountToReturn.Currency)
+        if (Amount.Currency != effectiveAllocatedAmount.Currency)
             throw new DomainValidationException(
-                "Currency mismatch during payment allocation reversal."
+                "Currency mismatch while recalculating invoice payment status."
             );
 
-        var outstanding = GetOutstandingBalance(totalAllocatedToInvoiceSoFar);
-        var newOutstandingAmount = outstanding.Amount + allocatedAmountToReturn.Amount;
-
-        if (newOutstandingAmount > Amount.Amount)
-            throw new DomainValidationException(
-                "Cannot reverse more money than the total baseline invoice value limit."
-            );
-
-        if (newOutstandingAmount == Amount.Amount)
-        {
+        if (effectiveAllocatedAmount.Amount <= 0)
             Status = InvoiceStatus.Pending;
-        }
-        else if (newOutstandingAmount > 0)
-        {
+        else if (effectiveAllocatedAmount.Amount < Amount.Amount)
             Status = InvoiceStatus.PartiallyPaid;
-        }
+        else
+            Status = InvoiceStatus.Paid;
 
         Version = Guid.NewGuid();
     }

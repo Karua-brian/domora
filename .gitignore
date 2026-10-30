@@ -11,6 +11,7 @@ appsettings.Development.Tests.json
 
 # Environment
 .env
+.env.test.local
 
 # Logs
 *.log

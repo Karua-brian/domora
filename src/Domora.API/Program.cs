@@ -138,6 +138,8 @@ builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 
 builder.Services.AddScoped<IPaymentAllocationRepository, PaymentAllocationRepository>();
 
+builder.Services.AddScoped<IPaymentVoidRepository, PaymentVoidRepository>();
+
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // Database

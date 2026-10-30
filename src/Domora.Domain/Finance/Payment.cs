@@ -71,7 +71,6 @@ public class Payment
             );
 
         Status = PaymentStatus.Voided;
-        UnallocatedAmount = new Money(0m, TotalAmount.Currency); // Wipe out available accounr credits
         Version = Guid.NewGuid();
     }
 
@@ -115,6 +114,16 @@ public class Payment
         Money allocatedToPaymentSoFar
     )
     {
+        if (Status == PaymentStatus.Voided)
+            throw new ResourceConflictException(
+                "Cannot allocate a voided payment."
+            );
+
+        if (allocateAmount.Amount <= 0)
+            throw new DomainValidationException(
+                "Payment allocation amount must be greater than zero."
+            );
+
         if (TotalAmount.Currency != allocateAmount.Currency)
             throw new DomainValidationException(
             $"Currency mismatch. Cannot allocate {allocateAmount.Currency} from a {TotalAmount.Currency} payment."

@@ -32,6 +32,8 @@ public sealed class DomoraDbContext : DbContext
 
     public DbSet<PaymentAllocation> PaymentAllocations => Set<PaymentAllocation>();
 
+    public DbSet<PaymentVoid> PaymentVoids => Set<PaymentVoid>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(DomoraDbContext).Assembly);

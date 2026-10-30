@@ -50,11 +50,13 @@ public sealed class PaymentController : ControllerBase
     [HttpPost("{paymentId:guid}/void")]
     public async Task<IActionResult> Void(
         [FromRoute] Guid paymentId,
+        [FromBody] VoidPaymentRequest request,
         CancellationToken cancellationToken
     )
     {
         var command = new VoidPaymentCommand(
-            paymentId
+            paymentId,
+            request.Reason
         );
 
         var response = await _voidHandler.Handle(

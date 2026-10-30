@@ -122,6 +122,20 @@ namespace Domora.Infrastructure.Migrations
                     b.ToTable("PaymentAllocations", (string)null);
                 });
 
+            modelBuilder.Entity("Domora.Domain.Finance.PaymentVoid", b =>
+                {
+                    b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid");
+                    b.Property<Guid>("ActorUserId").HasColumnType("uuid");
+                    b.Property<Guid>("OrganizationId").HasColumnType("uuid");
+                    b.Property<Guid>("PaymentId").HasColumnType("uuid");
+                    b.Property<string>("Reason").IsRequired().HasMaxLength(2000).HasColumnType("character varying(2000)");
+                    b.Property<DateTimeOffset>("VoidedAtUtc").HasColumnType("timestamp with time zone");
+                    b.HasKey("Id");
+                    b.HasIndex("ActorUserId");
+                    b.HasIndex("OrganizationId", "PaymentId").IsUnique().HasDatabaseName("UX_PaymentVoids_OrganizationId_PaymentId");
+                    b.ToTable("PaymentVoids", (string)null);
+                });
+
             modelBuilder.Entity("Domora.Domain.Leasing.Lease", b =>
                 {
                     b.Property<Guid>("Id")
@@ -419,6 +433,17 @@ namespace Domora.Infrastructure.Migrations
 
                     b.Navigation("AllocateAmount")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Domora.Domain.Finance.PaymentVoid", b =>
+                {
+                    b.HasOne("Domora.Domain.Users.User", null)
+                        .WithMany().HasForeignKey("ActorUserId")
+                        .OnDelete(DeleteBehavior.Restrict).IsRequired();
+                    b.HasOne("Domora.Domain.Finance.Payment", null)
+                        .WithOne().HasForeignKey("Domora.Domain.Finance.PaymentVoid", "OrganizationId", "PaymentId")
+                        .HasPrincipalKey("Domora.Domain.Finance.Payment", "OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict).IsRequired();
                 });
 
             modelBuilder.Entity("Domora.Domain.Leasing.Lease", b =>

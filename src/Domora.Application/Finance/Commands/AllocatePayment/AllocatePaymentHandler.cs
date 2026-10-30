@@ -3,6 +3,7 @@ using Domora.Application.Common.Persistence;
 using Domora.Domain.Common;
 using Domora.Domain.Common.Exceptions;
 using Domora.Domain.Finance;
+using Domora.Domain.Finance.Enums;
 using Domora.Domain.Leasing;
 
 namespace Domora.Application.Finance.Commands.AllocatePayment;
@@ -46,6 +47,9 @@ public sealed class AllocatePaymentHandler
         );
         if (payment is null)
             throw new NotFoundException("Payment not found."); 
+
+        if (payment.Status == PaymentStatus.Voided)
+            throw new ResourceConflictException("Cannot allocate a voided payment.");
         
         var allocatedToPaymentSoFar = await _paymentAllocationRepository
             .GetAllocatedAmountForPaymentAsync(

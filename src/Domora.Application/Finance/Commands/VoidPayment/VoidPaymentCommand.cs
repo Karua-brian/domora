@@ -1,5 +1,6 @@
 namespace Domora.Application.Finance.Commands.VoidPayment;
 
 public sealed record VoidPaymentCommand(
-    Guid PaymentId
+    Guid PaymentId,
+    string Reason
 );

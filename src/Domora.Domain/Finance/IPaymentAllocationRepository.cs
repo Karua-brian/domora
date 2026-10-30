@@ -23,12 +23,12 @@ public interface IPaymentAllocationRepository
     Task<Money> GetAllocatedAmountForInvoiceAsync(
         Guid invoiceId,
         string currency,
-        CancellationToken cancellationToken = default
+        CancellationToken cancellationToken = default,
+        Guid? excludedPaymentId = null
     );
 
     Task<IReadOnlyCollection<PaymentAllocation>> GetAllocationsByPaymentIdAsync(
         Guid paymentId,
         CancellationToken cancellationToken = default
     );
-    void Remove(PaymentAllocation paymentAllocation);
 }

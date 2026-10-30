@@ -123,7 +123,7 @@ using Domora.Infrastructure.Persistence;
 
             var voidResponse = await clientB.PostAsync(
                 $"/api/finances/payments/{paymentId}/void",
-                content: null
+                JsonContent.Create(new { reason = "Cross organization test" })
             );
 
             // Assert: do not reveal another organization's payment

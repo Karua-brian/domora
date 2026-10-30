@@ -54,16 +54,23 @@ public class DomoraWebApplicationFactory : WebApplicationFactory<Program>
                     "DomoraTest connection environment variable is not configured."
                 );
 
+            if (!connectionString.Contains(
+                    "Database=domora_test",
+                    StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException(
+                    "API integration tests may only run against the dedicated domora_test database."
+                );
+
             services.AddDbContext<DomoraDbContext>(options =>
             {
                 options.UseNpgsql(connectionString);
             });
 
-            // Hydrate the In-Memory schema safely
+            // Apply the real schema and PostgreSQL policies; EnsureCreated bypasses migrations.
             var sp = services.BuildServiceProvider();
             using var scope = sp.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<DomoraDbContext>();
-            db.Database.EnsureCreated();
+            db.Database.Migrate();
         });
     }
 }

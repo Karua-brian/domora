@@ -1,5 +1,6 @@
 using Domora.Domain.Common;
 using Domora.Domain.Finance;
+using Domora.Domain.Finance.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Domora.Infrastructure.Persistence.Repositories;
@@ -54,13 +55,20 @@ public sealed class PaymentAllocationRepository : IPaymentAllocationRepository
     public async Task<Money> GetAllocatedAmountForInvoiceAsync(
         Guid invoiceId,
         string currency,
-        CancellationToken cancellationToken = default
+        CancellationToken cancellationToken = default,
+        Guid? excludedPaymentId = null
     )
     {
-        var allocatedInvoiceAmount = await _dbContext.PaymentAllocations
-            .AsNoTracking()
-            .Where(x => x.InvoiceId == invoiceId)
-            .SumAsync(x => x.AllocateAmount.Amount, cancellationToken);
+        var allocatedInvoiceAmount = await (
+            from allocation in _dbContext.PaymentAllocations.AsNoTracking()
+            join payment in _dbContext.Payments.AsNoTracking()
+                on new { allocation.OrganizationId, allocation.PaymentId }
+                equals new { payment.OrganizationId, PaymentId = payment.Id }
+            where allocation.InvoiceId == invoiceId
+                && payment.Status == PaymentStatus.Active
+                && (!excludedPaymentId.HasValue || allocation.PaymentId != excludedPaymentId.Value)
+            select allocation.AllocateAmount.Amount
+        ).SumAsync(cancellationToken);
 
         return new Money(allocatedInvoiceAmount, currency);
     }
@@ -75,10 +83,4 @@ public sealed class PaymentAllocationRepository : IPaymentAllocationRepository
             .ToListAsync(cancellationToken);
     }
 
-    public void Remove(
-        PaymentAllocation paymentAllocation
-    )
-    {
-        _dbContext.PaymentAllocations.Remove(paymentAllocation);
-    }
 }

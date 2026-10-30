@@ -2,6 +2,7 @@ using Domora.Application.Common.Context;
 using Domora.Application.Common.Persistence;
 using Domora.Domain.Common.Exceptions;
 using Domora.Domain.Finance;
+using Domora.Domain.Finance.Enums;
 using Microsoft.Extensions.Logging;
 
 namespace Domora.Application.Finance.Commands.ReceivePayment;
@@ -47,6 +48,11 @@ public sealed class ReceivePaymentHandler
             // A retry of an already successful request returns the original payment
             if (existingPayment is not null)
             {
+                if (existingPayment.Status == PaymentStatus.Voided)
+                    throw new ResourceConflictException(
+                        "A voided payment reference cannot be reused."
+                    );
+
                 await transaction.CommitAsync(cancellationToken);
 
                 return new ReceivePaymentResponse(
@@ -100,6 +106,11 @@ public sealed class ReceivePaymentHandler
                 // The conflict was unrelated to this reference
                 throw;
             }
+
+            if (existingPayment.Status == PaymentStatus.Voided)
+                throw new ResourceConflictException(
+                    "A voided payment reference cannot be reused."
+                );
 
             await recoveryTransaction.CommitAsync(cancellationToken);
 
