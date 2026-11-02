@@ -9,7 +9,10 @@ public sealed class OrganizationMembershipConfiguration : IEntityTypeConfigurati
 {
     public void Configure(EntityTypeBuilder<OrganizationMembership> builder)
     {
-        builder.ToTable("OrganizationMemberships");
+        builder.ToTable("OrganizationMemberships", table =>
+            table.HasCheckConstraint(
+                "CK_OrganizationMemberships_Role",
+                "\"Role\" IN ('Owner', 'Member', 'Finance')"));
         
         builder.HasKey(m => m.Id);
 
@@ -29,6 +32,16 @@ public sealed class OrganizationMembershipConfiguration : IEntityTypeConfigurati
             m.OrganizationId
         })
         .IsUnique();
+
+        builder.HasIndex(m => m.OrganizationId)
+            .HasDatabaseName("IX_OrganizationMemberships_OrganizationId");
+
+        builder.HasIndex(
+                m => m.OrganizationId,
+                "IX_OrganizationMemberships_OrganizationId_Owner")
+            .IsUnique()
+            .HasDatabaseName("IX_OrganizationMemberships_OrganizationId_Owner")
+            .HasFilter("\"Role\" = 'Owner'");
 
         builder.HasOne<User>()
             .WithMany()

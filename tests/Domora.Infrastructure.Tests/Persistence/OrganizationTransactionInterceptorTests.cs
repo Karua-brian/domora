@@ -295,6 +295,7 @@ public sealed class OrganizationTransactionInterceptorTests
             async context =>
             {
                 await context.Organizations.AddAsync(organizationA);
+                await TestOrganizationData.AddOwnerAsync(context, organizationA);
                 await context.Properties.AddAsync(propertyA);
                 await context.SaveChangesAsync();
             }
@@ -305,6 +306,7 @@ public sealed class OrganizationTransactionInterceptorTests
             async context =>
             {
                 await context.Organizations.AddAsync(organizationB);
+                await TestOrganizationData.AddOwnerAsync(context, organizationB);
                 await context.Properties.AddAsync(propertyB);
                 await context.SaveChangesAsync();
             }

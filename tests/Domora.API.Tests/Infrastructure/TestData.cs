@@ -27,7 +27,8 @@ public static class TestData
 
     public static async Task<Organization>
         CreateOrganizationAsync(
-            DomoraDbContext context)
+            DomoraDbContext context,
+            Guid ownerUserId)
     {
         var organization =
             Organization.Register(
@@ -38,6 +39,14 @@ public static class TestData
 
         await context.Organizations.AddAsync(
             organization
+        );
+
+        await context.OrganizationMemberships.AddAsync(
+            OrganizationMembership.Create(
+                ownerUserId,
+                organization.Id,
+                OrganizationRole.Owner
+            )
         );
 
         await context.SaveChangesAsync();

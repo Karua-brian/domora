@@ -180,6 +180,7 @@ public sealed class LeaseRowLevelSecurityTests
             await context.Database.BeginTransactionAsync();
 
         await context.Set<Organization>().AddAsync(organization);
+        await TestOrganizationData.AddOwnerAsync(context, organization);
         await context.Set<Property>().AddAsync(property);
         await context.Set<Unit>().AddAsync(unit);
         await context.Set<Lease>().AddAsync(lease);

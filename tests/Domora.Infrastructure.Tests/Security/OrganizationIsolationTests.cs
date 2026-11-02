@@ -88,6 +88,7 @@ public sealed class OrganizationIsolationTests
             await context.Organizations.AddAsync(
                 organizationA
             );
+            await TestOrganizationData.AddOwnerAsync(context, organizationA);
 
             var propertyA =
                 Property.Register(
@@ -113,6 +114,7 @@ public sealed class OrganizationIsolationTests
             await context.Organizations.AddAsync(
                 organizationB
             );
+            await TestOrganizationData.AddOwnerAsync(context, organizationB);
 
             var propertyB =
                 Property.Register(
@@ -179,6 +181,7 @@ public sealed class OrganizationIsolationTests
             await context.Organizations.AddAsync(
                 organizationA
             );
+            await TestOrganizationData.AddOwnerAsync(context, organizationA);
 
             await context.SaveChangesAsync();
             await transaction.CommitAsync();
@@ -193,6 +196,7 @@ public sealed class OrganizationIsolationTests
             await context.Organizations.AddAsync(
                 organizationB
             );
+            await TestOrganizationData.AddOwnerAsync(context, organizationB);
 
             await context.SaveChangesAsync();
             await transaction.CommitAsync();
@@ -266,6 +270,7 @@ public sealed class OrganizationIsolationTests
                 await context.Database.BeginTransactionAsync();
 
             await context.Organizations.AddAsync(organizationA);
+            await TestOrganizationData.AddOwnerAsync(context, organizationA);
 
             await context.SaveChangesAsync();
             await transaction.CommitAsync();
@@ -278,6 +283,7 @@ public sealed class OrganizationIsolationTests
                 await context.Database.BeginTransactionAsync();
 
             await context.Organizations.AddAsync(organizationB);
+            await TestOrganizationData.AddOwnerAsync(context, organizationB);
 
             var propertyB = Property.Register(
                 organizationB.Id,
@@ -343,6 +349,7 @@ public sealed class OrganizationIsolationTests
                 await context.Database.BeginTransactionAsync();
 
             await context.Organizations.AddAsync(organizationA);
+            await TestOrganizationData.AddOwnerAsync(context, organizationA);
 
             await context.SaveChangesAsync();
             await transaction.CommitAsync();
@@ -355,6 +362,7 @@ public sealed class OrganizationIsolationTests
                 await context.Database.BeginTransactionAsync();
 
             await context.Organizations.AddAsync(organizationB);
+            await TestOrganizationData.AddOwnerAsync(context, organizationB);
 
             var propertyB =
                 Property.Register(

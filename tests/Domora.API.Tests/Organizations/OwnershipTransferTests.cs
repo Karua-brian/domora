@@ -76,8 +76,7 @@ public sealed class OwnershipTransferTests : IClassFixture<DomoraWebApplicationF
         var owner = await TestData.CreateUserAsync(db);
         var target = await TestData.CreateUserAsync(db);
         var member = await TestData.CreateUserAsync(db);
-        var organization = await TestData.CreateOrganizationAsync(db);
-        await TestData.AddMembershipAsync(db, owner.Id, organization.Id, OrganizationRole.Owner);
+        var organization = await TestData.CreateOrganizationAsync(db, owner.Id);
         await TestData.AddMembershipAsync(db, target.Id, organization.Id, OrganizationRole.Finance);
         await TestData.AddMembershipAsync(db, member.Id, organization.Id, OrganizationRole.Member);
         return (organization.Id, owner.Id, target.Id, member.Id);

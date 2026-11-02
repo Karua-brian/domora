@@ -36,22 +36,10 @@ using Domora.Infrastructure.Persistence;
                     .GetRequiredService<DomoraDbContext>();
 
                 var userA = await TestData.CreateUserAsync(db);
-                var organizationA = await TestData.CreateOrganizationAsync(db);
-
-                await TestData.AddMembershipAsync(
-                    db,
-                    userA.Id,
-                    organizationA.Id
-                );
+                var organizationA = await TestData.CreateOrganizationAsync(db, userA.Id);
 
                 var userB = await TestData.CreateUserAsync(db);
-                var organizationB = await TestData.CreateOrganizationAsync(db);
-
-                await TestData.AddMembershipAsync(
-                    db,
-                    userB.Id,
-                    organizationB.Id
-                );
+                var organizationB = await TestData.CreateOrganizationAsync(db, userB.Id);
 
                 userAId = userA.Id;
                 organizationAId = organizationA.Id;

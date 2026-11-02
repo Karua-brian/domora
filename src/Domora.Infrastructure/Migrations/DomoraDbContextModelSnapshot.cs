@@ -209,12 +209,21 @@ namespace Domora.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrganizationId");
+                    b.HasIndex("OrganizationId")
+                        .HasDatabaseName("IX_OrganizationMemberships_OrganizationId");
+
+                    b.HasIndex(new[] { "OrganizationId" }, "IX_OrganizationMemberships_OrganizationId_Owner")
+                        .IsUnique()
+                        .HasDatabaseName("IX_OrganizationMemberships_OrganizationId_Owner")
+                        .HasFilter("\"Role\" = 'Owner'");
 
                     b.HasIndex("UserId", "OrganizationId")
                         .IsUnique();
 
-                    b.ToTable("OrganizationMemberships", (string)null);
+                    b.ToTable("OrganizationMemberships", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_OrganizationMemberships_Role", "\"Role\" IN ('Owner', 'Member', 'Finance')");
+                        });
                 });
 
             modelBuilder.Entity("Domora.Domain.Properties.Property", b =>

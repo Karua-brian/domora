@@ -168,8 +168,7 @@ public sealed class MembershipRemovalTests : IClassFixture<DomoraWebApplicationF
         var owner = await TestData.CreateUserAsync(db);
         var finance = await TestData.CreateUserAsync(db);
         var member = await TestData.CreateUserAsync(db);
-        var organization = await TestData.CreateOrganizationAsync(db);
-        await TestData.AddMembershipAsync(db, owner.Id, organization.Id, OrganizationRole.Owner);
+        var organization = await TestData.CreateOrganizationAsync(db, owner.Id);
         await TestData.AddMembershipAsync(db, finance.Id, organization.Id, OrganizationRole.Finance);
         await TestData.AddMembershipAsync(db, member.Id, organization.Id, OrganizationRole.Member);
         return new SeededMemberships(organization.Id, owner.Id, finance.Id, member.Id);
@@ -181,8 +180,7 @@ public sealed class MembershipRemovalTests : IClassFixture<DomoraWebApplicationF
         var db = scope.ServiceProvider.GetRequiredService<DomoraDbContext>();
         var owner = await TestData.CreateUserAsync(db);
         var member = await TestData.CreateUserAsync(db);
-        var organization = await TestData.CreateOrganizationAsync(db);
-        await TestData.AddMembershipAsync(db, owner.Id, organization.Id, OrganizationRole.Owner);
+        var organization = await TestData.CreateOrganizationAsync(db, owner.Id);
         await TestData.AddMembershipAsync(db, member.Id, organization.Id, OrganizationRole.Finance);
 
         var property = Property.Register(

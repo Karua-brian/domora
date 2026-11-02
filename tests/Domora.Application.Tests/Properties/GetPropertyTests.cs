@@ -89,6 +89,7 @@ public sealed class GetPropertyTests
             async ctx =>
             {
                 await ctx.Organizations.AddAsync(organization);
+                await TestOrganizationData.AddOwnerAsync(ctx, organization);
                 await ctx.Properties.AddAsync(property);
                 await ctx.SaveChangesAsync();
             }
@@ -144,6 +145,8 @@ public sealed class GetPropertyTests
             {
                 await ctx.Organizations.AddAsync(organizationA);
                 await ctx.Organizations.AddAsync(organizationB);
+                await TestOrganizationData.AddOwnerAsync(ctx, organizationA);
+                await TestOrganizationData.AddOwnerAsync(ctx, organizationB);
                 await ctx.Properties.AddAsync(property);
                 await ctx.SaveChangesAsync();
             }
@@ -185,6 +188,7 @@ public sealed class GetPropertyTests
             async ctx =>
             {
                 await ctx.Organizations.AddAsync(organization);
+                await TestOrganizationData.AddOwnerAsync(ctx, organization);
                 await ctx.SaveChangesAsync();
             }
         );

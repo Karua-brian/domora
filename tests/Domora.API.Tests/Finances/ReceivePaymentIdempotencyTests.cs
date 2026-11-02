@@ -28,8 +28,7 @@ public sealed class ReceivePaymentIdempotencyTests : IClassFixture<DomoraWebAppl
         var dbContext = scope.ServiceProvider.GetRequiredService<DomoraDbContext>();
 
         var user = await TestData.CreateUserAsync(dbContext);
-        var organization = await TestData.CreateOrganizationAsync(dbContext);
-        await TestData.AddMembershipAsync(dbContext, user.Id, organization.Id);
+        var organization = await TestData.CreateOrganizationAsync(dbContext, user.Id);
 
         using var client = AuthenticatedClientFactory.Create(_factory, user.Id);
         

@@ -45,8 +45,7 @@ public sealed class FinancialAuthorizationTests : IClassFixture<DomoraWebApplica
             var finance = await TestData.CreateUserAsync(db);
             var member = await TestData.CreateUserAsync(db);
             var nonmember = await TestData.CreateUserAsync(db);
-            var organization = await TestData.CreateOrganizationAsync(db);
-            await TestData.AddMembershipAsync(db, owner.Id, organization.Id, OrganizationRole.Owner);
+            var organization = await TestData.CreateOrganizationAsync(db, owner.Id);
             await TestData.AddMembershipAsync(db, finance.Id, organization.Id, OrganizationRole.Finance);
             await TestData.AddMembershipAsync(db, member.Id, organization.Id, OrganizationRole.Member);
 

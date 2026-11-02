@@ -52,8 +52,10 @@ public sealed class TransferOwnershipHandler
             throw new ResourceConflictException(
                 "The target is already the Owner.");
 
-        currentOwner.TransferOwnershipTo(target);
+        currentOwner.DemoteForOwnershipTransferTo(target);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
+        target.PromoteAfterOwnershipTransferOf(currentOwner);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 

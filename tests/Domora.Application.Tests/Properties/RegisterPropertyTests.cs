@@ -114,6 +114,7 @@ public sealed class RegisterPropertyTests
             async (ctx) =>
             {
                 await ctx.Organizations.AddAsync(organization);
+                await TestOrganizationData.AddOwnerAsync(ctx, organization);
                 await ctx.SaveChangesAsync();
             }
         );

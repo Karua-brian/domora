@@ -61,6 +61,7 @@ public sealed class UnitofWorkTransactionTests
         );
 
         await context.Organizations.AddAsync(organization);
+        await TestOrganizationData.AddOwnerAsync(context, organization);
 
         await using var transaction = await unitOfWork.BeginTransactionAsync(CancellationToken.None);
 
@@ -96,6 +97,7 @@ public sealed class UnitofWorkTransactionTests
         );
 
         await context.Organizations.AddAsync(organization);
+        await TestOrganizationData.AddOwnerAsync(context, organization);
 
         await using var transaction = await unitOfWork.BeginTransactionAsync(CancellationToken.None);
 

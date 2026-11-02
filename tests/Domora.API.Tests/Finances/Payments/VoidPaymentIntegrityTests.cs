@@ -45,8 +45,7 @@ public sealed class VoidPaymentIntegrityTests : IClassFixture<DomoraWebApplicati
         {
             var db = scope.ServiceProvider.GetRequiredService<DomoraDbContext>();
             var user = await TestData.CreateUserAsync(db);
-            var organization = await TestData.CreateOrganizationAsync(db);
-            await TestData.AddMembershipAsync(db, user.Id, organization.Id);
+            var organization = await TestData.CreateOrganizationAsync(db, user.Id);
 
             var property = Property.Register(organization.Id, PropertyName.Create($"Void {Guid.NewGuid():N}"));
             var unit = Unit.Register(property.Id, UnitNumber.Create($"V-{Guid.NewGuid():N}"), UnitType.Apartment);

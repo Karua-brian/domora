@@ -32,13 +32,7 @@ public sealed class OrganizationAuthorizationMiddlewareTests
             await TestData.CreateUserAsync(context);
 
         var organization =
-            await TestData.CreateOrganizationAsync(context);
-
-        await TestData.AddMembershipAsync(
-            context,
-            user.Id,
-            organization.Id
-        );
+            await TestData.CreateOrganizationAsync(context, user.Id);
 
         return (
             user.Id,
@@ -223,10 +217,9 @@ public sealed class OrganizationAuthorizationMiddlewareTests
             scope.ServiceProvider
                 .GetRequiredService<DomoraDbContext>();
 
+        var otherOwner = await TestData.CreateUserAsync(context);
         var otherOrganization =
-            await TestData.CreateOrganizationAsync(
-                context
-            );
+            await TestData.CreateOrganizationAsync(context, otherOwner.Id);
 
         using var client =
             AuthenticatedClientFactory.Create(
@@ -251,6 +244,7 @@ public sealed class OrganizationAuthorizationMiddlewareTests
             response.StatusCode
         );
     }
+
 
     [Fact]
     public async Task Anonymous_request_should_continue_without_organization_context()

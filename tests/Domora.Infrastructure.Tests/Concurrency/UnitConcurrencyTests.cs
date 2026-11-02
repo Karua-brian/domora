@@ -86,6 +86,7 @@ public sealed class UnitConcurrencyTests
             async context =>
             {
                 await context.Organizations.AddAsync(organization);
+                await TestOrganizationData.AddOwnerAsync(context, organization);
 
                 var property = Property.Register(
                     organization.Id,

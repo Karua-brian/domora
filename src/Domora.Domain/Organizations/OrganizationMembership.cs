@@ -57,6 +57,41 @@ public sealed class OrganizationMembership
 
     public void TransferOwnershipTo(OrganizationMembership target)
     {
+        ValidateTransferTarget(target);
+        Role = OrganizationRole.Finance;
+        target.Role = OrganizationRole.Owner;
+    }
+
+    public void DemoteForOwnershipTransferTo(OrganizationMembership target)
+    {
+        ValidateTransferTarget(target);
+        Role = OrganizationRole.Finance;
+    }
+
+    public void PromoteAfterOwnershipTransferOf(OrganizationMembership formerOwner)
+    {
+        ArgumentNullException.ThrowIfNull(formerOwner);
+
+        if (OrganizationId != formerOwner.OrganizationId)
+            throw new DomainValidationException(
+                "The new Owner must belong to the same organization."
+            );
+
+        if (formerOwner.Role != OrganizationRole.Finance)
+            throw new DomainValidationException(
+                "The former Owner must be demoted before ownership is transferred."
+            );
+
+        if (Role is not (OrganizationRole.Member or OrganizationRole.Finance))
+            throw new DomainValidationException(
+                "Only a non-Owner member can receive ownership."
+            );
+
+        Role = OrganizationRole.Owner;
+    }
+
+    private void ValidateTransferTarget(OrganizationMembership target)
+    {
         ArgumentNullException.ThrowIfNull(target);
 
         if (Role != OrganizationRole.Owner)
@@ -78,9 +113,6 @@ public sealed class OrganizationMembership
             throw new DomainValidationException(
                 "The target is already an Owner."
             );
-
-        Role = OrganizationRole.Finance;
-        target.Role = OrganizationRole.Owner;
     }
 
     public void ChangeRole(OrganizationRole role)

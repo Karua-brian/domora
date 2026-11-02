@@ -98,6 +98,7 @@ public sealed class EndLeaseIntegrationTests
             await context.Database.BeginTransactionAsync();
 
         await context.Organizations.AddAsync(organization);
+        await TestOrganizationData.AddOwnerAsync(context, organization);
         await context.Properties.AddAsync(property);
         await context.Units.AddAsync(unit);
         await context.Leases.AddAsync(lease);
