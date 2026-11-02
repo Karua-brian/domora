@@ -67,32 +67,13 @@ Documentation is written before implementation decisions are made.
 
 ## Current Stage
 
-### Phase 1.0: Product Design & System Architecture
+Domora is in active foundational implementation. The repository currently contains working organization registration and membership management, property and unit registration, lease registration and termination, invoice issuance and monthly invoice generation, payment receipt/allocation, payment voiding, and role-based financial authorization. This implementation snapshot does not imply production readiness; see the [engineering risk register](docs/09-engineering/risk-register.md) for known gaps.
 
-Domora is currently in the foundational implementation stage.
-
-The business model and core rental workflows are being translated into a reliable domain model and infrastructure.
-
-Current foundations include:
-
-- Organization-based multi-tenancy
-- Property and unit management
-- Lease management
-- Invoice and payment foundations
-- Database transactions
-- Optimistic concurrency control
-- PostgreSQL Row-Level Security
-- Organization-scoped database transactions
-- Automated infrastructure tests
-- Cross-organization isolation tests
-
-The current objective is to establish the business rules, security boundaries, data integrity, and architectural foundations before expanding into higher-level product capabilities.
+The implemented organization model uses Owner, Finance, and Member roles. PostgreSQL enforces supported role values and at most one Owner per organization. Supported application workflows create the Owner and preserve one Owner during ownership and membership mutations.
 
 Implementation follows the principle:
 
 > **Mindset first, then code.**
-
-The system is built around the real workflows and decisions of property businesses rather than around technology for its own sake.
 
 ---
 
@@ -118,20 +99,17 @@ For example, organization isolation is enforced at the PostgreSQL layer using Ro
 
 ---
 
-## Current Architectural Focus
+## Local Development and Tests
 
-The current engineering focus is establishing trustworthy foundations for a multi-tenant rental platform.
+Use the guarded PostgreSQL test workflow for database-backed tests:
 
-The system is being developed around several core invariants:
+```sh
+./scripts/test-with-db.sh
+```
 
-- An organization can only access its own data.
-- Cross-organization writes are rejected.
-- Concurrent modifications must not silently overwrite each other.
-- Financial records must remain traceable.
-- Business state changes must follow explicit domain rules.
-- Database transactions must preserve business consistency.
+The script loads local `.env.test.local`, verifies the configured `domora_test` connection, and runs solution tests using the application role. Do not pass development or production connection strings to the test runner. Rebuilding the test database is a separate destructive operation in `scripts/rebuild-test-db.sh`; it uses the dedicated local test administrator and database identity/session guards. It is not part of routine test execution.
 
-These foundations will support the higher-level rental workflows that follow.
+For tenant boundaries and project responsibilities, see [Architecture Overview](docs/06-architecture/architecture-overview.md). See [Business Invariants](docs/03-business/business-invariants.md) alongside the implementation risk register; documentation describes current behavior and known limits.
 
 ---
 
