@@ -23,7 +23,9 @@ public sealed class AuthenticationController : ControllerBase
         _authentication = authentication;
     }
 
+    /// <summary>Registers a user account.</summary>
     [HttpPost("register")]
+    [ProducesResponseType(typeof(RegisterUserResponse), StatusCodes.Status201Created)]
     public async Task<ActionResult<RegisterUserResponse>> Register(
         RegisterRequest request,
         CancellationToken cancellationToken
@@ -45,7 +47,10 @@ public sealed class AuthenticationController : ControllerBase
         );
     }
 
+    /// <summary>Authenticates a user and returns a JWT access token.</summary>
     [HttpPost("login")]
+    [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<LoginResponse>> Login(
         LoginRequest request,
         CancellationToken cancellationToken

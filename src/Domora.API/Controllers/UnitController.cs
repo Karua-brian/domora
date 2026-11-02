@@ -16,8 +16,10 @@ public sealed class UnitController : ControllerBase
         _handler = handler;
     }
 
+    /// <summary>Registers a unit under a property in the current organization.</summary>
     [RequireOrganizationAccess]
     [HttpPost]
+    [ProducesResponseType(typeof(RegisterUnitResponse), StatusCodes.Status201Created)]
     public async Task<IActionResult> Register(
         RegisterUnitRequest request, 
         CancellationToken cancellationToken)

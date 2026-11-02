@@ -38,7 +38,9 @@ public sealed class OrganizationsController : ControllerBase
         _leaveOrganizationHandler = leaveOrganizationHandler;
     }
 
+    /// <summary>Creates an organization and makes the authenticated user its Owner.</summary>
     [HttpPost]
+    [ProducesResponseType(typeof(RegisterOrganizationResponse), StatusCodes.Status201Created)]
     public async Task<IActionResult> Register(
         RegisterOrganizationRequest request,
         CancellationToken cancellationToken
@@ -59,8 +61,10 @@ public sealed class OrganizationsController : ControllerBase
         );
     }
 
+    /// <summary>Transfers organization ownership to an existing member.</summary>
     [RequireOrganizationAccess]
     [HttpPost("ownership/transfer")]
+    [ProducesResponseType(typeof(TransferOwnershipResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> TransferOwnership(
         TransferOwnershipRequest request,
         CancellationToken cancellationToken)
@@ -72,8 +76,10 @@ public sealed class OrganizationsController : ControllerBase
         return Ok(response);
     }
 
+    /// <summary>Adds an existing user to the current organization.</summary>
     [RequireOrganizationAccess]
     [HttpPost("memberships")]
+    [ProducesResponseType(typeof(AddOrganizationMemberResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> AddMember(
         AddOrganizationMemberRequest request,
         CancellationToken cancellationToken)
@@ -85,8 +91,10 @@ public sealed class OrganizationsController : ControllerBase
         return Ok(response);
     }
 
+    /// <summary>Changes a non-Owner member's role.</summary>
     [RequireOrganizationAccess]
     [HttpPut("memberships/{userId:guid}/role")]
+    [ProducesResponseType(typeof(ChangeOrganizationMemberRoleResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> ChangeMemberRole(
         Guid userId,
         ChangeOrganizationMemberRoleRequest request,
@@ -99,8 +107,10 @@ public sealed class OrganizationsController : ControllerBase
         return Ok(response);
     }
 
+    /// <summary>Removes a non-Owner member from the current organization.</summary>
     [RequireOrganizationAccess]
     [HttpDelete("memberships/{userId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> RemoveMember(
         Guid userId,
         CancellationToken cancellationToken)
@@ -112,8 +122,10 @@ public sealed class OrganizationsController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>Leaves the current organization as a non-Owner member.</summary>
     [RequireOrganizationAccess]
     [HttpPost("memberships/leave")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> LeaveOrganization(
         CancellationToken cancellationToken)
     {

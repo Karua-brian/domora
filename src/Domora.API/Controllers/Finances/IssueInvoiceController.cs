@@ -21,8 +21,10 @@ public sealed class IssueInvoiceController : ControllerBase
         _handler = handler;
     }
 
+    /// <summary>Issues an invoice for a lease in the current organization.</summary>
     [RequireOrganizationAccess]
     [HttpPost]
+    [ProducesResponseType(typeof(IssueInvoiceResponse), StatusCodes.Status201Created)]
     public async Task<IActionResult> Issue(
         IssueInvoiceRequest request,
         CancellationToken cancellationToken

@@ -23,8 +23,10 @@ public sealed class PropertyController : ControllerBase
         _getPropertyHandler = getPropertyHandler;
     }
 
+    /// <summary>Registers a property in the current organization.</summary>
     [RequireOrganizationAccess]
     [HttpPost]
+    [ProducesResponseType(typeof(RegisterPropertyResponse), StatusCodes.Status201Created)]
     public async Task<IActionResult> Register(
         RegisterPropertyRequest request, 
         CancellationToken cancellationToken
@@ -41,8 +43,10 @@ public sealed class PropertyController : ControllerBase
         return Created($"/api/properties/{response.Id}" ,response);
     }
 
+    /// <summary>Returns a property in the current organization.</summary>
     [RequireOrganizationAccess]
     [HttpGet("{propertyId:guid}")]
+    [ProducesResponseType(typeof(GetPropertyResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> Get(
         Guid propertyId,
         CancellationToken cancellationToken

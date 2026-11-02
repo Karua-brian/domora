@@ -24,8 +24,10 @@ public sealed class PaymentController : ControllerBase
         _voidHandler = voidHandler;
     }
 
+    /// <summary>Records a payment received by the current organization.</summary>
     [RequireOrganizationAccess]
     [HttpPost]
+    [ProducesResponseType(typeof(ReceivePaymentResponse), StatusCodes.Status201Created)]
     public async Task<IActionResult> Receive(
         ReceivePaymentRequest request,
         CancellationToken cancellationToken
@@ -46,8 +48,10 @@ public sealed class PaymentController : ControllerBase
         );
     }
 
+    /// <summary>Voids a payment with an audit reason.</summary>
     [RequireOrganizationAccess]
     [HttpPost("{paymentId:guid}/void")]
+    [ProducesResponseType(typeof(VoidPaymentResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> Void(
         [FromRoute] Guid paymentId,
         [FromBody] VoidPaymentRequest request,

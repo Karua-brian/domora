@@ -111,6 +111,26 @@ The script loads local `.env.test.local`, verifies the configured `domora_test` 
 
 For tenant boundaries and project responsibilities, see [Architecture Overview](docs/06-architecture/architecture-overview.md). See [Business Invariants](docs/03-business/business-invariants.md) alongside the implementation risk register; documentation describes current behavior and known limits.
 
+### Test the API with Swagger UI
+
+Start the API with the Development launch profile:
+
+```sh
+dotnet run --project src/Domora.API --launch-profile https
+```
+
+Open Swagger UI at <https://localhost:7205/swagger>. The OpenAPI JSON is at <https://localhost:7205/swagger/v1/swagger.json>. The HTTP profile is available at <http://localhost:5278/swagger>. Swagger is enabled only when `ASPNETCORE_ENVIRONMENT=Development`; the routes are not registered in Production.
+
+The API does not create or migrate the database at startup. Configure a local development database and apply the existing migrations through the approved development workflow before trying database-backed requests. Do not use production credentials for local testing.
+
+1. In Swagger, call `POST /auth/register` with a development email and password, then `POST /auth/login` with the same values. Copy `accessToken` from the login response.
+2. Select **Authorize**, paste the token only (without typing the `Bearer ` prefix), and authorize. The Swagger security scheme sends it as a bearer JWT. `POST /auth/register` and `POST /auth/login` remain anonymous.
+3. Call `POST /api/Organizations` to create an organization. Copy its returned `id`.
+4. For an endpoint marked with `X-Organization-Id`, enter that organization ID in the header field shown by Swagger. For example, call `POST /api/properties` with `{ "name": "Central House" }` to create a property in that organization.
+5. Continue with the unit and lease registration endpoints, then invoice/payment operations. Payment and invoice write operations require a persisted Owner or Finance membership as defined by the existing authorization rules; voiding is Owner-only.
+
+The current API has no payment or invoice history read endpoints, so Swagger lists the implemented writes and the existing property read rather than implying unsupported finance queries.
+
 ---
 
 ## Long-Term Direction

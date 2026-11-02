@@ -19,8 +19,10 @@ public sealed class PaymentAllocationsController : ControllerBase
         _handler = handler;
     }
 
+    /// <summary>Allocates payment credit to invoices for a lease.</summary>
     [RequireOrganizationAccess]
     [HttpPost]
+    [ProducesResponseType(typeof(AllocatePaymentResponse), StatusCodes.Status201Created)]
     public async Task<IActionResult> Allocate(
         AllocatePaymentRequest request,
         CancellationToken cancellationToken

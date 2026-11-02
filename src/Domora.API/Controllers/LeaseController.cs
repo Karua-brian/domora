@@ -25,8 +25,10 @@ public sealed class LeaseController : ControllerBase
         _endLeaseHandler = endLeaseHandler;
     }
 
+    /// <summary>Registers a lease for a unit in the current organization.</summary>
     [RequireOrganizationAccess]
-    [HttpPost]      
+    [HttpPost]
+    [ProducesResponseType(typeof(RegisterLeaseResponse), StatusCodes.Status201Created)]
     public async Task<IActionResult> Register(
         RegisterLeaseRequest request,
         CancellationToken cancellationToken)
@@ -47,8 +49,10 @@ public sealed class LeaseController : ControllerBase
         return Created($"/api/leases/{response.Id}", response);
     }
 
+    /// <summary>Ends an active lease in the current organization.</summary>
     [RequireOrganizationAccess]
     [HttpPost("{leaseId:guid}/end")]
+    [ProducesResponseType(typeof(EndLeaseResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> End(
         Guid leaseId,
         EndLeaseRequest request,
