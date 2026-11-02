@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Domora.API.Tests.Finances;
 
-[Collection("Sequential")]
+[Collection("Domora API database")]
 public sealed class IssueMonthlyInvoicesTests : IClassFixture<DomoraWebApplicationFactory>
 {
     private readonly DomoraWebApplicationFactory _factory;

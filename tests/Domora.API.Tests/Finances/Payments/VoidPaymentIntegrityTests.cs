@@ -21,6 +21,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Domora.API.Tests.Finances.Payments;
 
+[Collection("Domora API database")]
 public sealed class VoidPaymentIntegrityTests : IClassFixture<DomoraWebApplicationFactory>
 {
     private readonly DomoraWebApplicationFactory _factory;

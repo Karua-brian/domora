@@ -28,6 +28,15 @@ public sealed class OrganizationMembershipRepository : IOrganizationMembershipRe
         );
     }
 
+    public Task RemoveAsync(
+        OrganizationMembership membership,
+        CancellationToken cancellationToken
+    )
+    {
+        _dbContext.OrganizationMemberships.Remove(membership);
+        return Task.CompletedTask;
+    }
+
     public Task<bool> ExistsAsync(
         Guid userId,
         Guid organizationId,
@@ -61,4 +70,51 @@ public sealed class OrganizationMembershipRepository : IOrganizationMembershipRe
                 cancellationToken
             );
     }
+
+    public async Task LockOrganizationAsync(
+        Guid organizationId,
+        CancellationToken cancellationToken
+    )
+    {
+        var organizationIdResult = await _dbContext.Database
+            .SqlQuery<Guid>($"""
+                SELECT "Id" AS "Value"
+                FROM "Organizations"
+                WHERE "Id" = {organizationId}
+                FOR UPDATE
+                """)
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (organizationIdResult == Guid.Empty)
+            throw new Domora.Application.Common.Exceptions.NotFoundException(
+                "Organization not found."
+            );
+    }
+
+    public async Task<IReadOnlyList<OrganizationMembership>> GetOwnersAsync(
+        Guid organizationId,
+        CancellationToken cancellationToken
+    )
+    {
+        return await _dbContext.OrganizationMemberships
+            .Where(
+                membership => membership.OrganizationId == organizationId &&
+                    membership.Role == OrganizationRole.Owner)
+            .ToListAsync(cancellationToken);
+    }
+
+    public Task<OrganizationMembership?> GetByUserAsync(
+        Guid userId,
+        Guid organizationId,
+        CancellationToken cancellationToken
+    )
+    {
+        return _dbContext.OrganizationMemberships
+            .SingleOrDefaultAsync(
+                membership => membership.UserId == userId &&
+                    membership.OrganizationId == organizationId,
+                cancellationToken
+            );
+    }
+
 }

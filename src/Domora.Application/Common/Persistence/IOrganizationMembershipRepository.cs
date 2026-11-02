@@ -10,6 +10,11 @@ public interface IOrganizationMembershipRepository
         CancellationToken cancellationToken = default
     );
 
+    Task RemoveAsync(
+        OrganizationMembership membership,
+        CancellationToken cancellationToken = default
+    );
+
     Task<bool> ExistsAsync(
         Guid userId,
         Guid organizationId,
@@ -21,5 +26,22 @@ public interface IOrganizationMembershipRepository
         Guid organizationId,
         OrganizationRole role,
         CancellationToken cancellationToken = default
-    ); 
+    );
+
+    Task LockOrganizationAsync(
+        Guid organizationId,
+        CancellationToken cancellationToken = default
+    );
+
+    Task<IReadOnlyList<OrganizationMembership>> GetOwnersAsync(
+        Guid organizationId,
+        CancellationToken cancellationToken = default
+    );
+
+    Task<OrganizationMembership?> GetByUserAsync(
+        Guid userId,
+        Guid organizationId,
+        CancellationToken cancellationToken = default
+    );
+
 }

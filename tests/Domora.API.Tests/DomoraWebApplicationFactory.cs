@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 
 namespace Domora.API.Tests;
 
@@ -47,16 +48,17 @@ public class DomoraWebApplicationFactory : WebApplicationFactory<Program>
                 services.Remove(dbContextDescriptor);
             }
 
-            // Register a fresh, isolated internal service provider specifically for the test DbContext
+            // Replace the application DbContext registration with the verified test database.
             var connectionString = Environment.GetEnvironmentVariable("DomoraTest");
             if (string.IsNullOrWhiteSpace(connectionString))
                 throw new InvalidOperationException(
                     "DomoraTest connection environment variable is not configured."
                 );
 
-            if (!connectionString.Contains(
-                    "Database=domora_test",
-                    StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(
+                    new NpgsqlConnectionStringBuilder(connectionString).Database,
+                    "domora_test",
+                    StringComparison.Ordinal))
                 throw new InvalidOperationException(
                     "API integration tests may only run against the dedicated domora_test database."
                 );
@@ -65,12 +67,6 @@ public class DomoraWebApplicationFactory : WebApplicationFactory<Program>
             {
                 options.UseNpgsql(connectionString);
             });
-
-            // Apply the real schema and PostgreSQL policies; EnsureCreated bypasses migrations.
-            var sp = services.BuildServiceProvider();
-            using var scope = sp.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<DomoraDbContext>();
-            db.Database.Migrate();
         });
     }
 }

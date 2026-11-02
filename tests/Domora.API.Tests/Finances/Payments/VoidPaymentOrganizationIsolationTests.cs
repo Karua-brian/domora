@@ -8,6 +8,7 @@ using Domora.Infrastructure.Persistence;
 
     namespace Domora.API.Tests.Finances.Payments;
 
+    [Collection("Domora API database")]
     public sealed class VoidPaymentOrganizationIsolationTests : IClassFixture<DomoraWebApplicationFactory>
     {
         private readonly DomoraWebApplicationFactory _factory;

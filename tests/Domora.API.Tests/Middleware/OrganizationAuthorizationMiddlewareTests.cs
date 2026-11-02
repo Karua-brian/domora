@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Domora.API.Tests.Middleware;
 
+[Collection("Domora API database")]
 public sealed class OrganizationAuthorizationMiddlewareTests
     : IClassFixture<DomoraWebApplicationFactory>
 {

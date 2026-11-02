@@ -12,6 +12,8 @@ appsettings.Development.Tests.json
 # Environment
 .env
 .env.test.local
+.env.test.admin.local
+.domora-test-cluster-id
 
 # Logs
 *.log

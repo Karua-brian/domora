@@ -28,6 +28,11 @@ public sealed class RegisterUserTests
         {
             return Task.FromResult(User);
         }
+
+        public Task<bool> ExistsAsync(
+            Guid userId,
+            CancellationToken cancellationToken
+        ) => Task.FromResult(User?.Id == userId);
     }
 
     private sealed class FakePasswordHasher : IPasswordHasher

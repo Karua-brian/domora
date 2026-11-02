@@ -8,6 +8,7 @@ using Xunit;
 
 namespace Domora.API.Tests.Finances;
 
+[Collection("Domora API database")]
 public sealed class ReceivePaymentIdempotencyTests : IClassFixture<DomoraWebApplicationFactory>
 {
     private readonly DomoraWebApplicationFactory _factory;

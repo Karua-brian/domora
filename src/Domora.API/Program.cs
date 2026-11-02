@@ -13,6 +13,12 @@ using Domora.Application.Finance.Commands.VoidPayment;
 using Domora.Application.Leasing.Commands.EndLease;
 using Domora.Application.Leasing.Commands.RegisterLease;
 using Domora.Application.Organizations.Commands.RegisterOrganization;
+using Domora.Application.Organizations.Commands;
+using Domora.Application.Organizations.Commands.TransferOwnership;
+using Domora.Application.Organizations.Commands.AddOrganizationMember;
+using Domora.Application.Organizations.Commands.ChangeOrganizationMemberRole;
+using Domora.Application.Organizations.Commands.RemoveOrganizationMember;
+using Domora.Application.Organizations.Commands.LeaveOrganization;
 using Domora.Application.Properties.Commands.RegisterProperty;
 using Domora.Application.Properties.Queries.GetProperty;
 using Domora.Application.Units.Commands.RegisterUnit;
@@ -54,7 +60,7 @@ builder.Services
     .AddJsonOptions(options =>
     {
        options.JsonSerializerOptions.Converters.Add(
-            new JsonStringEnumConverter()); 
+            new JsonStringEnumConverter());
     });
 
 // Http Context
@@ -97,6 +103,18 @@ builder.Services.AddScoped<OrganizationTransactionInterceptor>();
 builder.Services.AddScoped<RegisterUserHandler>();
 
 builder.Services.AddScoped<RegisterOrganizationHandler>();
+
+builder.Services.AddScoped<TransferOwnershipHandler>();
+
+builder.Services.AddScoped<OwnershipMutationGuard>();
+
+builder.Services.AddScoped<AddOrganizationMemberHandler>();
+
+builder.Services.AddScoped<ChangeOrganizationMemberRoleHandler>();
+
+builder.Services.AddScoped<RemoveOrganizationMemberHandler>();
+
+builder.Services.AddScoped<LeaveOrganizationHandler>();
 
 builder.Services.AddScoped<RegisterPropertyHandler>();
 

@@ -14,4 +14,9 @@ public interface IUserRepository
         CancellationToken cancellationToken = default
     );
 
+    Task<bool> ExistsAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default
+    );
+
 }

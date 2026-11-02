@@ -19,6 +19,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Domora.API.Tests.Finances;
 
+[Collection("Domora API database")]
 public sealed class FinancialAuthorizationTests : IClassFixture<DomoraWebApplicationFactory>
 {
     private readonly DomoraWebApplicationFactory _factory;

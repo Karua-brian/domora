@@ -40,4 +40,14 @@ public sealed class UserRepository : IUserRepository
                 cancellationToken
             );
     }
+
+    public Task<bool> ExistsAsync(
+        Guid userId,
+        CancellationToken cancellationToken
+    )
+    {
+        return _dbContext.Users
+            .AsNoTracking()
+            .AnyAsync(user => user.Id == userId, cancellationToken);
+    }
 }

@@ -13,6 +13,7 @@ using Xunit; // Ensure Xunit is explicitly here for the [Fact] attribute
 
 namespace Domora.API.Tests.Organizations; // 🚀 FIX: Removed the accidental space before the dot
 
+[Collection("Domora API database")]
 public sealed class RegisterOrganizationTests : IClassFixture<DomoraWebApplicationFactory>
 {
     private readonly DomoraWebApplicationFactory _factory;
