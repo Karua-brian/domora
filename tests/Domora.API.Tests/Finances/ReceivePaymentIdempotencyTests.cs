@@ -101,6 +101,70 @@ public sealed class ReceivePaymentIdempotencyTests : IClassFixture<DomoraWebAppl
         );
     }
 
+    [Fact]
+    public async Task Reusing_reference_with_different_amount_or_currency_returns_conflict()
+    {
+        var (client, reference) = await CreateClientAndReferenceAsync();
+        using (client)
+        {
+            var first = await client.PostAsJsonAsync("api/finances/payments", new
+            {
+                amount = 150m,
+                currency = "KES",
+                reference
+            });
+            var differentAmount = await client.PostAsJsonAsync("api/finances/payments", new
+            {
+                amount = 151m,
+                currency = "KES",
+                reference
+            });
+            var differentCurrency = await client.PostAsJsonAsync("api/finances/payments", new
+            {
+                amount = 150m,
+                currency = "USD",
+                reference
+            });
+
+            Assert.Equal(HttpStatusCode.Created, first.StatusCode);
+            Assert.Equal(HttpStatusCode.Conflict, differentAmount.StatusCode);
+            Assert.Equal(HttpStatusCode.Conflict, differentCurrency.StatusCode);
+        }
+    }
+
+    [Fact]
+    public async Task Concurrent_identical_payment_retries_return_one_existing_payment()
+    {
+        var (client, reference) = await CreateClientAndReferenceAsync();
+        using (client)
+        {
+            var payload = new { amount = 150m, currency = "KES", reference };
+            var responses = await Task.WhenAll(
+                client.PostAsJsonAsync("api/finances/payments", payload),
+                client.PostAsJsonAsync("api/finances/payments", payload));
+
+            Assert.All(responses, response => Assert.Contains(
+                response.StatusCode, new[] { HttpStatusCode.Created, HttpStatusCode.OK }));
+
+            var payments = await Task.WhenAll(responses.Select(response =>
+                response.Content.ReadFromJsonAsync<PaymentTestResponse>()));
+            Assert.NotNull(payments[0]);
+            Assert.NotNull(payments[1]);
+            Assert.Equal(payments[0]!.Id, payments[1]!.Id);
+        }
+    }
+
+    private async Task<(HttpClient Client, string Reference)> CreateClientAndReferenceAsync()
+    {
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<DomoraDbContext>();
+        var user = await TestData.CreateUserAsync(db);
+        var organization = await TestData.CreateOrganizationAsync(db, user.Id);
+        var client = AuthenticatedClientFactory.Create(_factory, user.Id);
+        client.DefaultRequestHeaders.Add("X-Organization-Id", organization.Id.ToString());
+        return (client, $"SAFETY-{Guid.NewGuid():N}");
+    }
+
     private sealed record PaymentTestResponse(
         Guid Id,
         decimal Amount,

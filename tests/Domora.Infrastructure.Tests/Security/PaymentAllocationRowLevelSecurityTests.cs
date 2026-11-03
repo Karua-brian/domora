@@ -11,6 +11,8 @@ using Domora.Domain.Properties.ValueObjects;
 using Domora.Domain.Units;
 using Domora.Domain.Units.Enums;
 using Domora.Domain.Units.ValueObjects;
+using Domora.Domain.Users;
+using Domora.Domain.Users.ValueObjects;
 using Domora.Infrastructure.Persistence;
 using Domora.Infrastructure.Persistence.Interceptors;
 using Microsoft.AspNetCore.Mvc.Diagnostics;
@@ -160,11 +162,49 @@ public sealed class PaymentAllocationRowLevelSecurityTests
         Assert.Equal(0, affectedRows);
     }
 
+    [Fact]
+    public async Task Reversal_rows_are_organization_isolated_and_reject_cross_organization_insert()
+    {
+        var seeded = await SeedAllocationAsync();
+        var allocation = await LoadAllocationAsync(seeded.OrganizationId, seeded.AllocationId);
+        var reversal = PaymentAllocationReversal.Create(allocation, "reversal RLS test", seeded.ActorUserId);
+
+        await using (var ownerContext = CreateContext(seeded.OrganizationId))
+        await using (var transaction = await ownerContext.Database.BeginTransactionAsync())
+        {
+            await ownerContext.PaymentAllocationReversals.AddAsync(reversal);
+            await ownerContext.SaveChangesAsync();
+            await transaction.CommitAsync();
+        }
+
+        await using (var otherContext = CreateContext(Guid.NewGuid()))
+        await using (var transaction = await otherContext.Database.BeginTransactionAsync())
+        {
+            Assert.Empty(await otherContext.PaymentAllocationReversals
+                .Where(x => x.Id == reversal.Id).ToListAsync());
+        }
+
+        var unauthorizedReversal = PaymentAllocationReversal.Create(allocation,
+            "cross organization insert", seeded.ActorUserId);
+        await using var unauthorizedContext = CreateContext(Guid.NewGuid());
+        await using var unauthorizedTransaction = await unauthorizedContext.Database.BeginTransactionAsync();
+        await unauthorizedContext.PaymentAllocationReversals.AddAsync(unauthorizedReversal);
+        await Assert.ThrowsAsync<DbUpdateException>(() => unauthorizedContext.SaveChangesAsync());
+    }
+
+    private async Task<PaymentAllocation> LoadAllocationAsync(Guid organizationId, Guid allocationId)
+    {
+        await using var context = CreateContext(organizationId);
+        await using var transaction = await context.Database.BeginTransactionAsync();
+        return await context.PaymentAllocations.SingleAsync(x => x.Id == allocationId);
+    }
+
     private async Task<(
         Guid OrganizationId,
         Guid PaymentId,
         Guid InvoiceId,
-        Guid AllocationId
+        Guid AllocationId,
+        Guid ActorUserId
     )> SeedAllocationAsync()
     {
         var invoice = await SeedInvoiceAsync();
@@ -181,6 +221,8 @@ public sealed class PaymentAllocationRowLevelSecurityTests
             invoice.InvoiceId,
             new Money(1_000m, "KES")
         );
+        var actor = User.Register(UserEmail.Create($"allocation-actor-{Guid.NewGuid():N}@example.com"),
+            UserPassword.Create("Test-password-hash"));
 
         await using var context =
             CreateContext(invoice.OrganizationId);
@@ -190,6 +232,7 @@ public sealed class PaymentAllocationRowLevelSecurityTests
 
         await context.Set<Payment>().AddAsync(payment);
         await context.Set<PaymentAllocation>().AddAsync(allocation);
+        await context.Users.AddAsync(actor);
 
         await context.SaveChangesAsync();
         await transaction.CommitAsync();
@@ -198,7 +241,8 @@ public sealed class PaymentAllocationRowLevelSecurityTests
             invoice.OrganizationId,
             payment.Id,
             invoice.InvoiceId,
-            allocation.Id
+            allocation.Id,
+            actor.Id
         );
     }
 

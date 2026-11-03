@@ -44,4 +44,16 @@ public sealed class PaymentVoidTests
         Assert.Equal(PaymentStatus.Voided, payment.Status);
         Assert.Equal(100m, payment.UnallocatedAmount.Amount);
     }
+
+    [Fact]
+    public void Restoring_allocation_credit_increases_available_balance_but_never_above_total()
+    {
+        var payment = Payment.Receive(Guid.NewGuid(), new Money(100m, "KES"), "restore-test");
+        payment.DeductCredit(new Money(40m, "KES"));
+
+        payment.RestoreCredit(new Money(25m, "KES"));
+
+        Assert.Equal(85m, payment.UnallocatedAmount.Amount);
+        Assert.Throws<DomainValidationException>(() => payment.RestoreCredit(new Money(20m, "KES")));
+    }
 }

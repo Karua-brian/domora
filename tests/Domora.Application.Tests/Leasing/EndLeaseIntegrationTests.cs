@@ -139,6 +139,12 @@ public sealed class EndLeaseIntegrationTests
             return lease;
         }
 
+        public Task<Lease?> GetByIdForOrganizationAsync(
+            Guid id,
+            Guid organizationId,
+            CancellationToken cancellationToken = default
+        ) => _inner.GetByIdForOrganizationAsync(id, organizationId, cancellationToken);
+
         public Task<IReadOnlyCollection<Lease>> GetActiveLeasesAsync(
             CancellationToken cancellationToken = default
         ) 
