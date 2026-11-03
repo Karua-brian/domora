@@ -35,6 +35,20 @@ public sealed class LeaseRepository : ILeaseRepository
                 );
     }
 
+    public async Task<Lease?> GetByIdForOrganizationAsync(
+        Guid id,
+        Guid organizationId,
+        CancellationToken cancellationToken)
+    {
+        return await (
+            from lease in _dbContext.Leases
+            join unit in _dbContext.Units on lease.UnitId equals unit.Id
+            join property in _dbContext.Properties on unit.PropertyId equals property.Id
+            where lease.Id == id && property.OrganizationId == organizationId
+            select lease
+        ).SingleOrDefaultAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyCollection<Lease>> GetActiveLeasesAsync(
         CancellationToken cancellationToken
     )

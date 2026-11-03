@@ -63,6 +63,8 @@ public sealed class ReceivePaymentHandler
                         "A voided payment reference cannot be reused."
                     );
 
+                EnsureRetryMatches(existingPayment, command);
+
                 await transaction.CommitAsync(cancellationToken);
 
                 return new ReceivePaymentResponse(
@@ -122,6 +124,8 @@ public sealed class ReceivePaymentHandler
                     "A voided payment reference cannot be reused."
                 );
 
+            EnsureRetryMatches(existingPayment, command);
+
             await recoveryTransaction.CommitAsync(cancellationToken);
 
             return new ReceivePaymentResponse(
@@ -131,6 +135,19 @@ public sealed class ReceivePaymentHandler
                 existingPayment.PaidAt,
                 existingPayment.Reference,
                 existingPayment.Version
+            );
+        }
+    }
+
+    private static void EnsureRetryMatches(
+        Payment existingPayment,
+        ReceivePaymentCommand command)
+    {
+        if (existingPayment.TotalAmount.Amount != command.Amount.Amount ||
+            !string.Equals(existingPayment.TotalAmount.Currency, command.Amount.Currency, StringComparison.Ordinal))
+        {
+            throw new ResourceConflictException(
+                "A payment with this reference already exists with a different amount or currency."
             );
         }
     }

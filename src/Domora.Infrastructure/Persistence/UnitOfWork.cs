@@ -106,6 +106,9 @@ public sealed class UnitOfWork : IUnitOfWork
             "UX_Payments_OrganizationId_Reference" =>
                 "A payment with this reference already exists in the organization.",
 
+            "UX_PaymentAllocationReversals_OrganizationId_PaymentAllocationId" =>
+                "This payment allocation has already been reversed.",
+
             _ =>
                 $"A record conflicts with an existing unique constraint ({postgresException.ConstraintName ?? "unknown"})."
         };

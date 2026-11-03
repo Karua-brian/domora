@@ -26,6 +26,19 @@ public sealed class PaymentAllocationRepository : IPaymentAllocationRepository
         );
     }
 
+    public async Task<PaymentAllocationReversal?> GetReversalByAllocationIdAsync(
+        Guid organizationId, Guid allocationId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.PaymentAllocationReversals.SingleOrDefaultAsync(
+            x => x.OrganizationId == organizationId && x.PaymentAllocationId == allocationId,
+            cancellationToken);
+    }
+
+    public async Task AddReversalAsync(PaymentAllocationReversal reversal, CancellationToken cancellationToken = default)
+    {
+        await _dbContext.PaymentAllocationReversals.AddAsync(reversal, cancellationToken);
+    }
+
     public async Task<PaymentAllocation?> GetByIdAsync(
         Guid id,
         CancellationToken cancellationToken
@@ -36,6 +49,13 @@ public sealed class PaymentAllocationRepository : IPaymentAllocationRepository
                 new object[] { id },
                 cancellationToken
             );
+    }
+
+    public async Task<PaymentAllocation?> GetByIdForOrganizationAsync(
+        Guid id, Guid organizationId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.PaymentAllocations.SingleOrDefaultAsync(
+            x => x.Id == id && x.OrganizationId == organizationId, cancellationToken);
     }
 
     public async Task<Money> GetAllocatedAmountForPaymentAsync(
@@ -49,7 +69,12 @@ public sealed class PaymentAllocationRepository : IPaymentAllocationRepository
             .Where(x => x.PaymentId == paymentId)
             .SumAsync(x => x.AllocateAmount.Amount, cancellationToken);
 
-        return new Money(allocatedPaymentAmount, currency);
+        var reversedAmount = await _dbContext.PaymentAllocationReversals.AsNoTracking()
+            .Where(x => _dbContext.PaymentAllocations.Any(a => a.OrganizationId == x.OrganizationId
+                && a.Id == x.PaymentAllocationId && a.PaymentId == paymentId))
+            .SumAsync(x => (decimal?)x.Amount.Amount, cancellationToken) ?? 0m;
+
+        return new Money(allocatedPaymentAmount - reversedAmount, currency);
     }
 
     public async Task<Money> GetAllocatedAmountForInvoiceAsync(
@@ -70,7 +95,20 @@ public sealed class PaymentAllocationRepository : IPaymentAllocationRepository
             select allocation.AllocateAmount.Amount
         ).SumAsync(cancellationToken);
 
-        return new Money(allocatedInvoiceAmount, currency);
+        var reversedAmount = await (
+            from reversal in _dbContext.PaymentAllocationReversals.AsNoTracking()
+            join allocation in _dbContext.PaymentAllocations.AsNoTracking()
+                on new { reversal.OrganizationId, Id = reversal.PaymentAllocationId }
+                equals new { allocation.OrganizationId, allocation.Id }
+            join payment in _dbContext.Payments.AsNoTracking()
+                on new { allocation.OrganizationId, allocation.PaymentId }
+                equals new { payment.OrganizationId, PaymentId = payment.Id }
+            where allocation.InvoiceId == invoiceId && payment.Status == PaymentStatus.Active
+                && (!excludedPaymentId.HasValue || allocation.PaymentId != excludedPaymentId.Value)
+            select reversal.Amount.Amount
+        ).SumAsync(cancellationToken);
+
+        return new Money(allocatedInvoiceAmount - reversedAmount, currency);
     }
 
     public async Task<IReadOnlyCollection<PaymentAllocation>> GetAllocationsByPaymentIdAsync(

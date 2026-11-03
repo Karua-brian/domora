@@ -1,6 +1,7 @@
 using Domora.API.Common.Authorization;
 using Domora.API.Finances.PaymentAllocations;
 using Domora.Application.Finance.Commands.AllocatePayment;
+using Domora.Application.Finance.Commands.ReversePaymentAllocation;
 using Domora.Domain.Common;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,12 +12,15 @@ namespace Domora.API.Controllers.Finances;
 public sealed class PaymentAllocationsController : ControllerBase
 {
     private readonly AllocatePaymentHandler _handler;
+    private readonly ReversePaymentAllocationHandler _reversalHandler;
 
     public PaymentAllocationsController(
-        AllocatePaymentHandler handler
+        AllocatePaymentHandler handler,
+        ReversePaymentAllocationHandler reversalHandler
     )
     {
         _handler = handler;
+        _reversalHandler = reversalHandler;
     }
 
     /// <summary>Allocates payment credit to invoices for a lease.</summary>
@@ -40,5 +44,17 @@ public sealed class PaymentAllocationsController : ControllerBase
         );
 
         return Created($"api/finances/payment-allocations/{response.PaymentId}", response);
+    }
+
+    /// <summary>Records a full reversal of an allocation, preserving the original allocation.</summary>
+    [RequireOrganizationAccess]
+    [HttpPost("{allocationId:guid}/reverse")]
+    [ProducesResponseType(typeof(ReversePaymentAllocationResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> Reverse(
+        Guid allocationId, ReversePaymentAllocationRequest request, CancellationToken cancellationToken)
+    {
+        var response = await _reversalHandler.Handle(
+            new ReversePaymentAllocationCommand(allocationId, request.Reason), cancellationToken);
+        return Ok(response);
     }
 }

@@ -1,4 +1,5 @@
 using Domora.Application.Common.Authorization;
+using Domora.Application.Common.Context;
 using Domora.Application.Common.Exceptions;
 using Domora.Application.Common.Persistence;
 using Domora.Domain.Common;
@@ -17,6 +18,7 @@ public sealed class AllocatePaymentHandler
     private readonly IPaymentAllocationRepository _paymentAllocationRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IFinancialAuthorization _financialAuthorization;
+    private readonly IOrganizationContext? _organizationContext;
 
     public AllocatePaymentHandler(
         IPaymentRepository paymentRepository,
@@ -24,7 +26,8 @@ public sealed class AllocatePaymentHandler
         IInvoiceRepository invoiceRepository,
         IPaymentAllocationRepository paymentAllocationRepository,
         IUnitOfWork unitOfWork,
-        IFinancialAuthorization financialAuthorization
+        IFinancialAuthorization financialAuthorization,
+        IOrganizationContext? organizationContext = null
     )
     {
         _paymentRepository = paymentRepository;
@@ -33,6 +36,7 @@ public sealed class AllocatePaymentHandler
         _paymentAllocationRepository = paymentAllocationRepository;
         _unitOfWork = unitOfWork;
         _financialAuthorization = financialAuthorization;
+        _organizationContext = organizationContext;
     }
 
     public async Task<AllocatePaymentResponse> Handle(
@@ -57,6 +61,10 @@ public sealed class AllocatePaymentHandler
         if (payment is null)
             throw new NotFoundException("Payment not found."); 
 
+        var organizationId = _organizationContext?.OrganizationId ?? payment.OrganizationId;
+        if (organizationId == Guid.Empty || payment.OrganizationId != organizationId)
+            throw new NotFoundException("Payment not found.");
+
         if (payment.Status == PaymentStatus.Voided)
             throw new ResourceConflictException("Cannot allocate a voided payment.");
         
@@ -74,17 +82,14 @@ public sealed class AllocatePaymentHandler
             allocatedToPaymentSoFar
         );
 
-        var lease = await _leaseRepository.GetByIdAsync(
+        var lease = await _leaseRepository.GetByIdForOrganizationAsync(
             command.LeaseId,
+            organizationId,
             cancellationToken
         );
 
         if (lease is null)
             throw new NotFoundException("Lease not found.");
-
-        // if (lease.OrganizationId != payment.OrganizationId)
-        //     throw new NotFoundException("Lease not found.");
-
 
         var unpaidInvoices = await _invoiceRepository.GetUnpaidInvoicesByLeaseIdAsync(
             command.LeaseId,
