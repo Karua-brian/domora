@@ -36,6 +36,8 @@ public sealed class DomoraDbContext : DbContext
 
     public DbSet<PaymentAllocationReversal> PaymentAllocationReversals => Set<PaymentAllocationReversal>();
 
+    public DbSet<InvoiceVoid> InvoiceVoids => Set<InvoiceVoid>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(DomoraDbContext).Assembly);

@@ -83,6 +83,8 @@ public class Invoice
 
     public void MarkAsPaid()
     {
+        if (Status == InvoiceStatus.Voided)
+            throw new ResourceConflictException("Cannot mark a voided invoice as paid.");
         if (Status == InvoiceStatus.Paid)
             throw new ResourceConflictException(
                 "Invoice is marked as paid"
@@ -96,6 +98,8 @@ public class Invoice
         Money allocatedToInvoice
     )
     {
+        if (Status == InvoiceStatus.Voided)
+            return new Money(0m, Amount.Currency);
         return new Money(
             Amount.Amount - allocatedToInvoice.Amount,
             Amount.Currency
@@ -107,6 +111,9 @@ public class Invoice
         Money previouslyAllocatedAmount
     )
     {
+        if (Status == InvoiceStatus.Voided)
+            throw new ResourceConflictException("Cannot allocate payment to a voided invoice.");
+
          if (Amount.Currency != paymentPool.Currency)
             throw new DomainValidationException(
                 $"Currency mismatch. Cannot allocate {paymentPool.Currency} from a {Amount.Currency} payment."
@@ -148,6 +155,9 @@ public class Invoice
 
     public void RecalculatePaymentStatus(Money effectiveAllocatedAmount)
     {
+        if (Status == InvoiceStatus.Voided)
+            throw new ResourceConflictException("Cannot recalculate payment status for a voided invoice.");
+
         if (Amount.Currency != effectiveAllocatedAmount.Currency)
             throw new DomainValidationException(
                 "Currency mismatch while recalculating invoice payment status."
@@ -160,6 +170,19 @@ public class Invoice
         else
             Status = InvoiceStatus.Paid;
 
+        Version = Guid.NewGuid();
+    }
+
+    public void Void(Money effectiveAllocatedAmount)
+    {
+        if (Status == InvoiceStatus.Voided)
+            throw new ResourceConflictException("This invoice has already been voided.");
+        if (Amount.Currency != effectiveAllocatedAmount.Currency)
+            throw new DomainValidationException("Currency mismatch while validating invoice cancellation.");
+        if (effectiveAllocatedAmount.Amount > 0)
+            throw new ResourceConflictException("An invoice with effective payment allocations cannot be voided.");
+
+        Status = InvoiceStatus.Voided;
         Version = Guid.NewGuid();
     }
 }

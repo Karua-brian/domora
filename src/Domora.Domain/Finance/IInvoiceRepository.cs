@@ -15,6 +15,9 @@ public interface IInvoiceRepository
         CancellationToken cancellationToken = default
     );
 
+    Task<Invoice?> GetByIdForOrganizationAsync(
+        Guid id, Guid organizationId, CancellationToken cancellationToken = default);
+
     Task<IReadOnlyCollection<Invoice>> GetUnpaidInvoicesByLeaseIdAsync(
         Guid leaseId,
         CancellationToken cancellationToken = default

@@ -61,6 +61,25 @@ namespace Domora.Infrastructure.Migrations
                     b.ToTable("Invoices", (string)null);
                 });
 
+            modelBuilder.Entity("Domora.Domain.Finance.InvoiceVoid", b =>
+                {
+                    b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid");
+                    b.Property<Guid>("ActorUserId").HasColumnType("uuid");
+                    b.Property<Guid>("InvoiceId").HasColumnType("uuid");
+                    b.Property<Guid>("OrganizationId").HasColumnType("uuid");
+                    b.Property<Guid?>("ReplacementInvoiceId").HasColumnType("uuid");
+                    b.Property<string>("Reason").IsRequired().HasMaxLength(2000).HasColumnType("character varying(2000)");
+                    b.Property<DateTimeOffset>("VoidedAtUtc").HasColumnType("timestamp with time zone");
+                    b.HasKey("Id");
+                    b.HasIndex("ActorUserId");
+                    b.HasIndex("OrganizationId", "InvoiceId").IsUnique()
+                        .HasDatabaseName("UX_InvoiceVoids_OrganizationId_InvoiceId");
+                    b.HasIndex("OrganizationId", "ReplacementInvoiceId").IsUnique()
+                        .HasDatabaseName("UX_InvoiceVoids_OrganizationId_ReplacementInvoiceId")
+                        .HasFilter("\"ReplacementInvoiceId\" IS NOT NULL");
+                    b.ToTable("InvoiceVoids", (string)null);
+                });
+
             modelBuilder.Entity("Domora.Domain.Finance.Payment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -492,6 +511,21 @@ namespace Domora.Infrastructure.Migrations
                             b1.WithOwner().HasForeignKey("PaymentAllocationReversalId");
                         });
                     b.Navigation("Amount").IsRequired();
+                });
+
+            modelBuilder.Entity("Domora.Domain.Finance.InvoiceVoid", b =>
+                {
+                    b.HasOne("Domora.Domain.Finance.Invoice", null).WithOne()
+                        .HasForeignKey("Domora.Domain.Finance.InvoiceVoid", "OrganizationId", "InvoiceId")
+                        .HasPrincipalKey("Domora.Domain.Finance.Invoice", "OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict).IsRequired();
+                    b.HasOne("Domora.Domain.Finance.Invoice", null).WithMany()
+                        .HasForeignKey("OrganizationId", "ReplacementInvoiceId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+                    b.HasOne("Domora.Domain.Users.User", null).WithMany()
+                        .HasForeignKey("ActorUserId")
+                        .OnDelete(DeleteBehavior.Restrict).IsRequired();
                 });
 
             modelBuilder.Entity("Domora.Domain.Leasing.Lease", b =>
