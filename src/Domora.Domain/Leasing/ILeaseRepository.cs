@@ -13,6 +13,12 @@ public interface ILeaseRepository
         CancellationToken cancellationToken = default
     );
 
+    Task<Lease?> GetByIdForOrganizationAsync(
+        Guid id,
+        Guid organizationId,
+        CancellationToken cancellationToken = default
+    );
+
     Task<IReadOnlyCollection<Lease>> GetActiveLeasesAsync(
         CancellationToken cancellationToken = default
     );

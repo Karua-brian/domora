@@ -99,6 +99,19 @@ public class Payment
         );
         Version = Guid.NewGuid();
     }
+
+    public void RestoreCredit(Money amount)
+    {
+        if (Status == PaymentStatus.Voided)
+            throw new ResourceConflictException("Cannot restore credit to a voided payment.");
+        if (TotalAmount.Currency != amount.Currency)
+            throw new DomainValidationException("Currency mismatch while restoring payment credit.");
+        if (amount.Amount <= 0 || UnallocatedAmount.Amount + amount.Amount > TotalAmount.Amount)
+            throw new DomainValidationException("Restored credit must be positive and cannot exceed the payment total.");
+
+        UnallocatedAmount = new Money(UnallocatedAmount.Amount + amount.Amount, TotalAmount.Currency);
+        Version = Guid.NewGuid();
+    }
     public Money GetRemainingBalance(
         Money allocatedToPayment
     )

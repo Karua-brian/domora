@@ -115,6 +115,9 @@ namespace Domora.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasAlternateKey("OrganizationId", "Id")
+                        .HasName("AK_PaymentAllocations_OrganizationId_Id");
+
                     b.HasIndex("OrganizationId", "InvoiceId");
 
                     b.HasIndex("OrganizationId", "PaymentId");
@@ -134,6 +137,21 @@ namespace Domora.Infrastructure.Migrations
                     b.HasIndex("ActorUserId");
                     b.HasIndex("OrganizationId", "PaymentId").IsUnique().HasDatabaseName("UX_PaymentVoids_OrganizationId_PaymentId");
                     b.ToTable("PaymentVoids", (string)null);
+                });
+
+            modelBuilder.Entity("Domora.Domain.Finance.PaymentAllocationReversal", b =>
+                {
+                    b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid");
+                    b.Property<Guid>("ActorUserId").HasColumnType("uuid");
+                    b.Property<Guid>("OrganizationId").HasColumnType("uuid");
+                    b.Property<Guid>("PaymentAllocationId").HasColumnType("uuid");
+                    b.Property<string>("Reason").IsRequired().HasMaxLength(2000).HasColumnType("character varying(2000)");
+                    b.Property<DateTimeOffset>("ReversedAtUtc").HasColumnType("timestamp with time zone");
+                    b.HasKey("Id");
+                    b.HasIndex("ActorUserId");
+                    b.HasIndex("OrganizationId", "PaymentAllocationId").IsUnique()
+                        .HasDatabaseName("UX_PaymentAllocationReversals_OrganizationId_PaymentAllocationId");
+                    b.ToTable("PaymentAllocationReversals", (string)null);
                 });
 
             modelBuilder.Entity("Domora.Domain.Leasing.Lease", b =>
@@ -453,6 +471,27 @@ namespace Domora.Infrastructure.Migrations
                         .WithOne().HasForeignKey("Domora.Domain.Finance.PaymentVoid", "OrganizationId", "PaymentId")
                         .HasPrincipalKey("Domora.Domain.Finance.Payment", "OrganizationId", "Id")
                         .OnDelete(DeleteBehavior.Restrict).IsRequired();
+                });
+
+            modelBuilder.Entity("Domora.Domain.Finance.PaymentAllocationReversal", b =>
+                {
+                    b.HasOne("Domora.Domain.Finance.PaymentAllocation", null).WithMany()
+                        .HasForeignKey("OrganizationId", "PaymentAllocationId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict).IsRequired();
+                    b.HasOne("Domora.Domain.Users.User", null).WithMany()
+                        .HasForeignKey("ActorUserId")
+                        .OnDelete(DeleteBehavior.Restrict).IsRequired();
+                    b.OwnsOne("Domora.Domain.Common.Money", "Amount", b1 =>
+                        {
+                            b1.Property<Guid>("PaymentAllocationReversalId").HasColumnType("uuid");
+                            b1.Property<decimal>("Amount").HasPrecision(18, 2).HasColumnType("numeric(18,2)").HasColumnName("Amount");
+                            b1.Property<string>("Currency").IsRequired().HasMaxLength(3).HasColumnType("character varying(3)").HasColumnName("Currency");
+                            b1.HasKey("PaymentAllocationReversalId");
+                            b1.ToTable("PaymentAllocationReversals", (string)null);
+                            b1.WithOwner().HasForeignKey("PaymentAllocationReversalId");
+                        });
+                    b.Navigation("Amount").IsRequired();
                 });
 
             modelBuilder.Entity("Domora.Domain.Leasing.Lease", b =>

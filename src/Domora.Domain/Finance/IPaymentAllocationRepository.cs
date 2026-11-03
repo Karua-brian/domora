@@ -14,6 +14,9 @@ public interface IPaymentAllocationRepository
         CancellationToken cancellationToken = default
     );
 
+    Task<PaymentAllocation?> GetByIdForOrganizationAsync(
+        Guid id, Guid organizationId, CancellationToken cancellationToken = default);
+
     Task<Money> GetAllocatedAmountForPaymentAsync(
         Guid paymentId,
         string currency,
@@ -31,4 +34,9 @@ public interface IPaymentAllocationRepository
         Guid paymentId,
         CancellationToken cancellationToken = default
     );
+
+    Task<PaymentAllocationReversal?> GetReversalByAllocationIdAsync(
+        Guid organizationId, Guid allocationId, CancellationToken cancellationToken = default);
+
+    Task AddReversalAsync(PaymentAllocationReversal reversal, CancellationToken cancellationToken = default);
 }

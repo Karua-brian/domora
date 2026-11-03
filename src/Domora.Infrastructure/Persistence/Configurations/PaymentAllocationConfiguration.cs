@@ -9,6 +9,8 @@ public sealed class PaymentAllocationConfiguration : IEntityTypeConfiguration<Pa
     public void Configure(EntityTypeBuilder<PaymentAllocation> builder)
     {
         builder.HasKey(x => x.Id);
+        builder.HasAlternateKey(x => new { x.OrganizationId, x.Id })
+            .HasName("AK_PaymentAllocations_OrganizationId_Id");
 
         builder
             .Property(x => x.PaymentId)
