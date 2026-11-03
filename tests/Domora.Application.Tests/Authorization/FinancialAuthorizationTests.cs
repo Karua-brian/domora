@@ -50,6 +50,7 @@ public sealed class FinancialAuthorizationTests
     [InlineData(FinancialCapability.VoidPayments)]
     [InlineData(FinancialCapability.IssueInvoices)]
     [InlineData(FinancialCapability.ViewFinancialRecords)]
+    [InlineData(FinancialCapability.CancelInvoices)]
     public async Task Owner_can_perform_every_financial_capability(
         FinancialCapability capability)
     {
@@ -78,6 +79,8 @@ public sealed class FinancialAuthorizationTests
 
         await Assert.ThrowsAsync<ForbiddenException>(() =>
             authorization.EnsureCanAsync(FinancialCapability.VoidPayments));
+        await Assert.ThrowsAsync<ForbiddenException>(() =>
+            authorization.EnsureCanAsync(FinancialCapability.CancelInvoices));
     }
 
     [Theory]
@@ -86,6 +89,7 @@ public sealed class FinancialAuthorizationTests
     [InlineData(FinancialCapability.VoidPayments)]
     [InlineData(FinancialCapability.IssueInvoices)]
     [InlineData(FinancialCapability.ViewFinancialRecords)]
+    [InlineData(FinancialCapability.CancelInvoices)]
     public async Task Member_cannot_perform_financial_capabilities(
         FinancialCapability capability)
     {
