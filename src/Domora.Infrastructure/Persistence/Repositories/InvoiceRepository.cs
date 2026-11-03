@@ -37,13 +37,20 @@ public sealed class InvoiceRepository : IInvoiceRepository
             );
     }
 
+    public async Task<Invoice?> GetByIdForOrganizationAsync(
+        Guid id, Guid organizationId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Invoices.SingleOrDefaultAsync(
+            x => x.Id == id && x.OrganizationId == organizationId, cancellationToken);
+    }
+
     public async Task<IReadOnlyCollection<Invoice>> GetUnpaidInvoicesByLeaseIdAsync(
         Guid leaseId,
         CancellationToken cancellationToken
     )
     {
         return await _dbContext.Invoices
-            .Where(i => i.LeaseId == leaseId && i.Status != InvoiceStatus.Paid)
+            .Where(i => i.LeaseId == leaseId && i.Status != InvoiceStatus.Paid && i.Status != InvoiceStatus.Voided)
             .OrderBy(i => i.DueDate)
             .ThenBy(i => i.Type == InvoiceType.Rent ? 0
                 : i.Type == InvoiceType.Water ? 1

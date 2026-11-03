@@ -40,9 +40,19 @@ public sealed class FinancialVisibilityReadRepository(DomoraDbContext dbContext)
                         .Sum(r => (decimal?)r.Amount.Amount) ?? 0m)
             }).ToListAsync(cancellationToken);
 
+        var invoiceIds = rows.Select(x => x.InvoiceId).ToArray();
+        var cancellations = await dbContext.InvoiceVoids.AsNoTracking()
+            .Where(x => x.OrganizationId == organizationId && invoiceIds.Contains(x.InvoiceId))
+            .ToDictionaryAsync(x => x.InvoiceId, cancellationToken);
+
         return rows.Select(row => new InvoiceBalanceReadModel(
             row.InvoiceId, row.LeaseId, row.TenantId, row.UnitId, row.PropertyId,
             row.Amount, row.Currency, row.DueDate, row.Status,
-            Math.Max(0m, row.Allocated), Math.Max(0m, row.Amount - row.Allocated))).ToList();
+            row.Status == InvoiceStatus.Voided ? 0m : Math.Max(0m, row.Allocated),
+            row.Status == InvoiceStatus.Voided ? 0m : Math.Max(0m, row.Amount - row.Allocated),
+            cancellations.GetValueOrDefault(row.InvoiceId)?.Reason,
+            cancellations.GetValueOrDefault(row.InvoiceId)?.ActorUserId,
+            cancellations.GetValueOrDefault(row.InvoiceId)?.VoidedAtUtc,
+            cancellations.GetValueOrDefault(row.InvoiceId)?.ReplacementInvoiceId)).ToList();
     }
 }

@@ -109,6 +109,12 @@ public sealed class UnitOfWork : IUnitOfWork
             "UX_PaymentAllocationReversals_OrganizationId_PaymentAllocationId" =>
                 "This payment allocation has already been reversed.",
 
+            "UX_InvoiceVoids_OrganizationId_InvoiceId" =>
+                "This invoice has already been voided.",
+
+            "UX_InvoiceVoids_OrganizationId_ReplacementInvoiceId" =>
+                "The replacement invoice is already linked to another void.",
+
             _ =>
                 $"A record conflicts with an existing unique constraint ({postgresException.ConstraintName ?? "unknown"})."
         };

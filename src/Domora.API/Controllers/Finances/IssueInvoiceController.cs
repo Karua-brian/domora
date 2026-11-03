@@ -1,6 +1,7 @@
 using Domora.API.Common.Authorization;
 using Domora.API.Finances.Invoices;
 using Domora.Application.Finance.Commands.IssueInvoice;
+using Domora.Application.Finance.Commands.VoidInvoice;
 using Domora.Domain.Common;
 using Domora.Domain.Finance.Enums;
 using Microsoft.AspNetCore.Mvc;
@@ -13,12 +14,15 @@ namespace Domora.API.Controllers.Finances;
 public sealed class IssueInvoiceController : ControllerBase
 {
     private readonly IssueInvoiceHandler _handler;
+    private readonly VoidInvoiceHandler _voidHandler;
 
     public IssueInvoiceController(
-        IssueInvoiceHandler handler
+        IssueInvoiceHandler handler,
+        VoidInvoiceHandler voidHandler
     )
     {
         _handler = handler;
+        _voidHandler = voidHandler;
     }
 
     /// <summary>Issues an invoice for a lease in the current organization.</summary>
@@ -43,5 +47,17 @@ public sealed class IssueInvoiceController : ControllerBase
         );
 
         return Created($"api/finances/invoices/{response.Id}", response);
+    }
+
+    /// <summary>Voids an unpaid invoice while retaining its financial history.</summary>
+    [RequireOrganizationAccess]
+    [HttpPost("{invoiceId:guid}/void")]
+    [ProducesResponseType(typeof(VoidInvoiceResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> Void(
+        Guid invoiceId, VoidInvoiceRequest request, CancellationToken cancellationToken)
+    {
+        var response = await _voidHandler.Handle(new VoidInvoiceCommand(
+            invoiceId, request.Reason, request.ReplacementInvoiceId), cancellationToken);
+        return Ok(response);
     }
 }

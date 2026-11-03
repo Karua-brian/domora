@@ -1,6 +1,7 @@
 using Domora.Application.Common.Authorization;
 using Domora.Application.Common.Context;
 using Domora.Application.Common.Persistence;
+using Domora.Domain.Finance.Enums;
 
 namespace Domora.Application.Finance.Queries.FinancialVisibility;
 
@@ -22,7 +23,8 @@ public sealed class FinancialVisibilityQueries(
     public async Task<IReadOnlyList<TenantBalanceReadModel>> GetTenantBalancesAsync(CancellationToken cancellationToken)
     {
         var invoices = await GetInvoicesAsync(cancellationToken);
-        return invoices.GroupBy(x => new { x.TenantId, x.Currency })
+        return invoices.Where(x => x.Status != InvoiceStatus.Voided)
+            .GroupBy(x => new { x.TenantId, x.Currency })
             .Select(group => new TenantBalanceReadModel(group.Key.TenantId, group.Key.Currency,
                 group.Sum(x => x.OutstandingBalance)))
             .OrderBy(x => x.TenantId).ThenBy(x => x.Currency).ToList();

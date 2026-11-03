@@ -12,6 +12,7 @@ using Domora.Application.Finance.Commands.ReceivePayment;
 using Domora.Application.Finance.Commands.VoidPayment;
 using Domora.Application.Finance.Queries.FinancialVisibility;
 using Domora.Application.Finance.Commands.ReversePaymentAllocation;
+using Domora.Application.Finance.Commands.VoidInvoice;
 using Domora.Application.Leasing.Commands.EndLease;
 using Domora.Application.Leasing.Commands.RegisterLease;
 using Domora.Application.Organizations.Commands.RegisterOrganization;
@@ -163,6 +164,7 @@ builder.Services.AddScoped<VoidPaymentHandler>();
 
 builder.Services.AddScoped<AllocatePaymentHandler>();
 builder.Services.AddScoped<ReversePaymentAllocationHandler>();
+builder.Services.AddScoped<VoidInvoiceHandler>();
 
 builder.Services.AddScoped<FinancialVisibilityQueries>();
 builder.Services.AddSingleton<IOrganizationLocalDateProvider, NairobiOrganizationLocalDateProvider>();
@@ -183,6 +185,7 @@ builder.Services.AddScoped<IUnitRepository, UnitRepository>();
 builder.Services.AddScoped<ILeaseRepository, LeaseRepository>();
 
 builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+builder.Services.AddScoped<IInvoiceVoidRepository, InvoiceVoidRepository>();
 
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 
