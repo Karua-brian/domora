@@ -17,9 +17,9 @@ public sealed class AuthenticationProbeController : ControllerBase
         _userContext = userContext;
     }
 
+    /// <summary>Returns the authenticated user's identifier.</summary>
     [Authorize]
     [HttpGet("me")]
-    /// <summary>Returns the authenticated user's identifier.</summary>
     [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
     public ActionResult<Guid> Me()
     {

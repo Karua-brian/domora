@@ -44,8 +44,12 @@ public sealed class InvoiceRepository : IInvoiceRepository
     {
         return await _dbContext.Invoices
             .Where(i => i.LeaseId == leaseId && i.Status != InvoiceStatus.Paid)
-            .OrderBy(i => i.DueDate) // Enforces FIFO sorting rules at the database boundary
-            .ThenBy(i => i.Type)
+            .OrderBy(i => i.DueDate)
+            .ThenBy(i => i.Type == InvoiceType.Rent ? 0
+                : i.Type == InvoiceType.Water ? 1
+                : i.Type == InvoiceType.Garbage ? 2
+                : 3)
+            .ThenBy(i => i.Id)
             .ToListAsync(cancellationToken);
     }
 
