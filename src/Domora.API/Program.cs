@@ -10,6 +10,7 @@ using Domora.Application.Finance.Commands.IssueInvoice;
 using Domora.Application.Finance.Commands.IssueMonthlyInvoices;
 using Domora.Application.Finance.Commands.ReceivePayment;
 using Domora.Application.Finance.Commands.VoidPayment;
+using Domora.Application.Finance.Queries.FinancialVisibility;
 using Domora.Application.Leasing.Commands.EndLease;
 using Domora.Application.Leasing.Commands.RegisterLease;
 using Domora.Application.Organizations.Commands.RegisterOrganization;
@@ -161,6 +162,8 @@ builder.Services.AddScoped<VoidPaymentHandler>();
 
 builder.Services.AddScoped<AllocatePaymentHandler>();
 
+builder.Services.AddScoped<FinancialVisibilityQueries>();
+builder.Services.AddSingleton<IOrganizationLocalDateProvider, NairobiOrganizationLocalDateProvider>();
 
 // Infrastructure
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -184,6 +187,7 @@ builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IPaymentAllocationRepository, PaymentAllocationRepository>();
 
 builder.Services.AddScoped<IPaymentVoidRepository, PaymentVoidRepository>();
+builder.Services.AddScoped<IFinancialVisibilityReadRepository, FinancialVisibilityReadRepository>();
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 

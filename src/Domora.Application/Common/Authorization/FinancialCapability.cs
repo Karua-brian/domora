@@ -5,5 +5,6 @@ public enum FinancialCapability
     ReceivePayments,
     AllocatePayments,
     VoidPayments,
-    IssueInvoices
+    IssueInvoices,
+    ViewFinancialRecords
 }

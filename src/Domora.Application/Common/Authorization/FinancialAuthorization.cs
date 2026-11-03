@@ -53,7 +53,8 @@ public sealed class FinancialAuthorization : IFinancialAuthorization
 
         var financeRoleCanPerform = capability is FinancialCapability.ReceivePayments
             or FinancialCapability.AllocatePayments
-            or FinancialCapability.IssueInvoices;
+            or FinancialCapability.IssueInvoices
+            or FinancialCapability.ViewFinancialRecords;
 
         if (financeRoleCanPerform &&
             await _memberships.HasRoleAsync(

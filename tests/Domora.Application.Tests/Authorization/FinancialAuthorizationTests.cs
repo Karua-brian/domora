@@ -49,6 +49,7 @@ public sealed class FinancialAuthorizationTests
     [InlineData(FinancialCapability.AllocatePayments)]
     [InlineData(FinancialCapability.VoidPayments)]
     [InlineData(FinancialCapability.IssueInvoices)]
+    [InlineData(FinancialCapability.ViewFinancialRecords)]
     public async Task Owner_can_perform_every_financial_capability(
         FinancialCapability capability)
     {
@@ -61,6 +62,7 @@ public sealed class FinancialAuthorizationTests
     [InlineData(FinancialCapability.ReceivePayments)]
     [InlineData(FinancialCapability.AllocatePayments)]
     [InlineData(FinancialCapability.IssueInvoices)]
+    [InlineData(FinancialCapability.ViewFinancialRecords)]
     public async Task Finance_role_can_receive_allocate_and_issue_invoices(
         FinancialCapability capability)
     {
@@ -83,7 +85,8 @@ public sealed class FinancialAuthorizationTests
     [InlineData(FinancialCapability.AllocatePayments)]
     [InlineData(FinancialCapability.VoidPayments)]
     [InlineData(FinancialCapability.IssueInvoices)]
-    public async Task Member_cannot_perform_financial_write_capabilities(
+    [InlineData(FinancialCapability.ViewFinancialRecords)]
+    public async Task Member_cannot_perform_financial_capabilities(
         FinancialCapability capability)
     {
         var authorization = CreateAuthorization(OrganizationRole.Member, out _);

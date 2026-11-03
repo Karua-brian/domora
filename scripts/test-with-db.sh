@@ -24,6 +24,11 @@ verify_domora_test_connection_settings
 
 echo "Running Domora tests against the dedicated test database..."
 
+TEST_TARGET="${1:-$ROOT_DIR/Domora.slnx}"
+if [[ "$#" -gt 0 ]]; then
+    shift
+fi
+
 env -u PGPASSFILE \
     -u PGPASSWORD \
     -u DOMORA_TEST_ADMIN_PGPASSFILE \
@@ -32,7 +37,8 @@ env -u PGPASSFILE \
     -u DOMORA_TEST_EXPECTED_SYSTEM_IDENTIFIER \
     -u ConnectionStrings__DomoraTestAdmin \
     -u DomoraTestAdmin \
-    dotnet test "$ROOT_DIR/Domora.slnx" \
+    dotnet test "$TEST_TARGET" \
     --no-restore \
     --disable-build-servers \
-    -m:1
+    -m:1 \
+    "$@"

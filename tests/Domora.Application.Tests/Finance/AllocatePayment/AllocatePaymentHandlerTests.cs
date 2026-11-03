@@ -158,6 +158,144 @@ public sealed class AllocatePaymentHandlerTests
         );
     }
 
+    private async Task<(
+        Guid OrganizationId,
+        Guid LeaseId,
+        Guid PaymentId,
+        IReadOnlyList<Guid> InvoiceIds
+    )> SeedAllocationPolicyScenarioAsync(
+        IReadOnlyList<(InvoiceType Type, decimal Amount, DateOnly DueDate)> invoiceDetails,
+        decimal paymentAmount)
+    {
+        var organization = Organization.Register(
+            OrganizationName.Create($"Allocation Policy Org {Guid.NewGuid():N}")
+        );
+        var property = Property.Register(
+            organization.Id,
+            PropertyName.Create($"Allocation Policy Property {Guid.NewGuid():N}")
+        );
+        var unit = Unit.Register(
+            property.Id,
+            UnitNumber.Create($"POLICY-{Guid.NewGuid():N}"),
+            UnitType.Bedsitter
+        );
+        var lease = Lease.Register(
+            unit.Id,
+            Guid.NewGuid(),
+            new Money(20_000m, "KES")
+        );
+        var invoices = invoiceDetails.Select(detail => Invoice.Create(
+            organization.Id,
+            lease.Id,
+            detail.Type,
+            new Money(detail.Amount, "KES"),
+            detail.DueDate
+        )).ToArray();
+        var payment = Payment.Receive(
+            organization.Id,
+            new Money(paymentAmount, "KES"),
+            $"POLICY-{Guid.NewGuid():N}"
+        );
+
+        await using var context = CreateContext(organization.Id);
+        await using var transaction = await context.Database.BeginTransactionAsync();
+        await context.Organizations.AddAsync(organization);
+        await TestOrganizationData.AddOwnerAsync(context, organization);
+        await context.Properties.AddAsync(property);
+        await context.Units.AddAsync(unit);
+        await context.Leases.AddAsync(lease);
+        await context.Invoices.AddRangeAsync(invoices);
+        await context.Payments.AddAsync(payment);
+        await context.SaveChangesAsync();
+        await transaction.CommitAsync();
+
+        return (
+            organization.Id,
+            lease.Id,
+            payment.Id,
+            invoices.Select(invoice => invoice.Id).ToArray()
+        );
+    }
+
+    [Fact]
+    public async Task Same_due_date_allocation_prioritizes_rent_over_garbage()
+    {
+        var dueDate = new DateOnly(2026, 11, 1);
+        var seeded = await SeedAllocationPolicyScenarioAsync(
+            [
+                (InvoiceType.Garbage, 100m, dueDate),
+                (InvoiceType.Rent, 15_000m, dueDate)
+            ],
+            10_000m
+        );
+
+        await using var context = CreateContext(seeded.OrganizationId);
+        var organizationContext = new TestOrganizationContext(seeded.OrganizationId);
+        var handler = new AllocatePaymentHandler(
+            new PaymentRepository(context),
+            new LeaseRepository(context),
+            new InvoiceRepository(context),
+            new PaymentAllocationRepository(context),
+            new UnitOfWork(context, organizationContext),
+            new AllowFinancialAuthorization()
+        );
+
+        var response = await handler.Handle(
+            new AllocatePaymentCommand(
+                seeded.PaymentId,
+                seeded.LeaseId,
+                new Money(10_000m, "KES")),
+            CancellationToken.None
+        );
+
+        var rentId = seeded.InvoiceIds[1];
+        var garbageId = seeded.InvoiceIds[0];
+        var allocation = Assert.Single(response.Allocations);
+        Assert.Equal(rentId, allocation.InvoiceId);
+        Assert.Equal(10_000m, allocation.Amount);
+
+        await using var verify = CreateContext(seeded.OrganizationId);
+        await using var verifyTransaction = await verify.Database.BeginTransactionAsync();
+        var rent = await verify.Invoices.SingleAsync(invoice => invoice.Id == rentId);
+        var garbage = await verify.Invoices.SingleAsync(invoice => invoice.Id == garbageId);
+        var allocations = await verify.PaymentAllocations
+            .Where(item => item.PaymentId == seeded.PaymentId)
+            .ToListAsync();
+
+        Assert.Equal(InvoiceStatus.PartiallyPaid, rent.Status);
+        Assert.Equal(5_000m, rent.GetOutstandingBalance(new Money(10_000m, "KES")).Amount);
+        Assert.Equal(InvoiceStatus.Pending, garbage.Status);
+        Assert.DoesNotContain(allocations, item => item.InvoiceId == garbageId);
+    }
+
+    [Fact]
+    public async Task Automatic_allocation_orders_oldest_then_rent_water_garbage_then_invoice_id()
+    {
+        var earlier = new DateOnly(2026, 10, 1);
+        var later = new DateOnly(2026, 11, 1);
+        var seeded = await SeedAllocationPolicyScenarioAsync(
+            [
+                (InvoiceType.Garbage, 100m, later),
+                (InvoiceType.Rent, 100m, later),
+                (InvoiceType.Water, 100m, later),
+                (InvoiceType.Garbage, 100m, earlier)
+            ],
+            1_000m
+        );
+
+        await using var context = CreateContext(seeded.OrganizationId);
+        await using var transaction = await context.Database.BeginTransactionAsync();
+        var invoices = await new InvoiceRepository(context)
+            .GetUnpaidInvoicesByLeaseIdAsync(seeded.LeaseId, CancellationToken.None);
+
+        var orderedIds = invoices.Select(invoice => invoice.Id).ToArray();
+        Assert.Equal(seeded.InvoiceIds[3], orderedIds[0]);
+        Assert.Equal(
+            [seeded.InvoiceIds[1], seeded.InvoiceIds[2], seeded.InvoiceIds[0]],
+            orderedIds.Skip(1)
+        );
+    }
+
     [Fact]
     public async Task Allocate_partial_payment_should_update_invoice_and_payment_balance()
     {
